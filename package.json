@@ -1,0 +1,36 @@
+{
+  "name": "notifier-api",
+  "version": "0.0.1",
+  "description": "The 720kb notifier api (atm it uses websockets)",
+  "homepage": "http://720kb.net",
+  "keywords": [
+    "ws",
+    "notify"
+  ],
+  "private": true,
+  "dependencies": {
+    "ws": "*",
+    "jsonwebtoken": "*"
+  },
+  "devDependencies": {
+    "connect-modrewrite": "*",
+    "grunt": "*",
+    "grunt-concurrent": "*",
+    "grunt-contrib-connect": "*",
+    "grunt-contrib-uglify": "*",
+    "grunt-contrib-watch": "*",
+    "grunt-eslint": "*"
+  },
+  "author": {
+    "name": "Dario Andrei",
+    "email": "wouldgo84@gmail.com",
+    "url": "https://github.com/wouldgo"
+  },
+  "contributors": [
+    {
+      "name": "Filippo Oretti",
+      "email": "filippo.oretti@gmail.com",
+      "url": "https://github.com/45kb"
+    }
+  ]
+}
