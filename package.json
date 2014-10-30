@@ -13,10 +13,8 @@
     "jsonwebtoken": "*"
   },
   "devDependencies": {
-    "connect-modrewrite": "*",
     "grunt": "*",
     "grunt-concurrent": "*",
-    "grunt-contrib-connect": "*",
     "grunt-contrib-uglify": "*",
     "grunt-contrib-watch": "*",
     "grunt-eslint": "*"

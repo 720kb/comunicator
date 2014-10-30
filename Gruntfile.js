@@ -1,5 +1,5 @@
-/*global module, require*/
-(function setUp(module, require) {
+/*global module*/
+(function setUp(module) {
   'use strict';
 
   var banner = ['/*',
@@ -7,8 +7,7 @@
       ' *',
       ' * <%= pkg.description %>',
       ' * <%= grunt.template.today("yyyy-mm-dd") %>',
-      ' */\n\n'].join('\n')
-    , modRewrite = require('connect-modrewrite');
+      ' */\n\n'].join('\n');
 
   module.exports = function doGrunt(grunt) {
 
@@ -93,4 +92,4 @@
       'uglify'
     ]);
   };
-}(module, require));
+}(module));
