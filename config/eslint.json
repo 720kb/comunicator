@@ -145,9 +145,9 @@
       "expression"
     ],
     "no-extra-parens": 1,
+    "func-names": 1,
 
     "no-ternary": 0,
-    "func-names": 0, //XXX should be put in 1 (warning state)
     "sort-vars": 0
   }
 }

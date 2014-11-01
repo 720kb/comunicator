@@ -6,10 +6,9 @@
     , ws = require('ws')
     , jwt = require('jsonwebtoken')
     , config = require('../config')
-    , EventEmitter = require('events').EventEmitter
-    , events = new EventEmitter()
+    , eventEmitter = require('events').EventEmitter
     , WebSocketServer = ws.Server
-    , wss = new WebSocketServer({'port': process.env.NOTIFER_PORT}, function () {
+    , wss = new WebSocketServer({'host': '0.0.0.0', 'port': process.env.NOTIFER_PORT}, function () {
 
         console.info('Server listen websocket connections on port', process.env.NOTIFER_PORT);
       })
@@ -57,19 +56,18 @@
 
         var parsedMsg = JSON.parse(message);
 
+        console.log(parsedMsg);
         /* {'opcode': 'join', 'whoami': <id>, 'token': <jwt-token>} */
         if (parsedMsg.opcode === 'join') {
 
           jwt.verify(parsedMsg.token, config.sessionSecretKey, function () {
 
             sockets[parsedMsg.whoami] = aWebSocket;
-
             var toSend = {
               'opcode': 'joined',
               'whoami': parsedMsg.whoami,
               'token': parsedMsg.token
             };
-
             aWebSocket.send(JSON.stringify(toSend));
           });
         } else
@@ -106,12 +104,10 @@
         for (socketIndex = 0; socketIndex < socketsKeys.length; socketIndex += 1) {
 
           aSocketKey = socketsKeys[socketIndex];
-
           if (aWebSocket === sockets[aSocketKey]) {
 
             //emit socket is going to close
-            events.emit('closingSocket', aSocketKey);
-
+            eventEmitter.emit('closingSocket', aSocketKey);
             delete sockets[aSocketKey];
           }
         }
@@ -120,9 +116,6 @@
 
         socket.on('message', function (message) {
 
-          console.log('A message -----------');
-          console.log(message);
-          console.log('----------------------------------' + Math.random(999,28728722));
           manageIncomingMessage(message, socket);
         });
 
@@ -134,11 +127,7 @@
 
     wss.on('connection', onRequest);
 
-    module.exports = {
-      'wss': wss,
-      'events':events,
-      'sockets': sockets,
-      'broadcast': broadcast,
-      'sendTo': sendTo
-    };
+    eventEmitter.broadcast = broadcast;
+    eventEmitter.sendTo = sendTo;
+    module.exports = eventEmitter;
 }(module, require, process, console));
