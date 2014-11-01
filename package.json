@@ -10,7 +10,8 @@
   "private": true,
   "dependencies": {
     "ws": "*",
-    "jsonwebtoken": "*"
+    "jsonwebtoken": "*",
+    "rsvp": "*"
   },
   "devDependencies": {
     "grunt": "*",
