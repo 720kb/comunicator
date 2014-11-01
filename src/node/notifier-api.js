@@ -63,6 +63,7 @@
           jwt.verify(parsedMsg.token, config.sessionSecretKey, function () {
 
             sockets[parsedMsg.whoami] = aWebSocket;
+            eventEmitter.emit('notifier:userJoin', parsedMsg.whoami);
             var toSend = {
               'opcode': 'joined',
               'whoami': parsedMsg.whoami,
@@ -107,7 +108,7 @@
           if (aWebSocket === sockets[aSocketKey]) {
 
             //emit socket is going to close
-            eventEmitter.emit('closingSocket', aSocketKey);
+            eventEmitter.emit('notifier:userLeave', aSocketKey);
             delete sockets[aSocketKey];
           }
         }

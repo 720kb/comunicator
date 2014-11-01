@@ -6,15 +6,20 @@
   angular.module('720kb.notifier', [])
   .provider('Notifier', function providerFunction() {
 
-    var webSocketURL
-      , whenAwareOfPresenceEvents;
+    var websocket;
+      , whenAwareOfPresenceEvents
+
+    websocket.onopen = function onWebSocketOpening() {
+
+      $window.console.info('Trasport', this, 'opened.');
+    };
 
     return {
       'setNotifierServerURL': function setNotifierServerURL(url) {
 
         if (url) {
 
-          webSocketURL = url;
+          websocket = new $window.WebSocket(url)
         } else {
 
           window.console.error('Please provide a valid URL.');
@@ -30,40 +35,88 @@
           window.console.error('Provide some events where register the user presence notifier call');
         }
       },
-      '$get': ['$window', '$rootScope', 'sessionFactory', function instantiateProvider($window, $rootScope, sessionFactory) {
+      '$get': ['$window', '$rootScope', function instantiateProvider($window, $rootScope) {
 
-        if (!webSocketURL ||
+        if (!websocket ||
           !whenAwareOfPresenceEvents) {
-            $window.console.error('Mandatory fields notifierServerURL and whenAwareOfPresenceEvents required', webSocketURL, whenAwareOfPresenceEvents);
+
+            var complainMessage = 'Mandatory fields notifierServerURL and whenAwareOfPresenceEvents required';
+            $window.console.error(complainMessage, websocket, whenAwareOfPresenceEvents);
+            throw complainMessage;
         }
 
-        var websocket = new $window.WebSocket(webSocketURL)
-          , whoami = sessionFactory.get('idUser')
-          , token = sessionFactory.get('sessionToken')
-          , userIsPresent = function userIsPresent() {
+        var whoami
+          , token
+          , doJoin = function() {
+
+              if (websocket.readyState === $window.WebSocket.OPEN) {
+
+                websocket.push(JSON.stringify({
+                  'opcode': 'join',
+                  'whoami': whoami,
+                  'token': token
+                }));
+              } else {
+
+                $window.console.info('Trasport to server is not yet ready. Retry...');
+                $window.requestAnimationFrame(doJoin);
+              }
+            }
+          , userIsPresent = function userIsPresent(eventsInformations, data) {/*{'userId': '<user-identification>', 'token': '<user-security-token>'}*/
+              whoami = data.userId;
+              token = data.token;
 
               if (whoami &&
                 token) {
 
-                if (websocket.readyState === $window.WebSocket.OPEN) {
+                doJoin();
+              } else {
 
-                  websocket.push(JSON.stringify({
-                    'opcode': 'join',
-                    'whoami': whoami,
-                    'token': token
-                  }));
-                } else {
-
-                  $window.console.warn('Trasport to server is not yet ready. ' +
-                    'This could be a notifier bug. ' +
-                    'Please report this use case for scenario reproduction.');
-                }
+                $window.console.error('User identification datas missing.');
               }
-            }
-          , broadcast = function broadcast(what) {
+            };
 
-              if (!!whoami &&
-                !!websocket) {
+        websocket.push = websocket.send;
+        websocket.send = function send(opcode, data) {
+
+          if (websocket.readyState === $window.WebSocket.OPEN) {
+
+            websocket.push(JSON.stringify({
+              'opcode': opcode,
+              'token': token,
+              'data': data
+            }));
+          } else {
+
+            $window.console.info('Trasport to server is not ready.');
+            $window.requestAnimationFrame(websocket.send.apply(this, [opcode, data]));
+          }
+        };
+
+        websocket.onmessage = function onWebSocketMessage(event) {
+
+          var parsedMsg = JSON.parse(event.data);
+          if (parsedMsg.opcode === 'joined') {
+
+            $rootScope.$emit('notifier:joined');
+          } else if (parsedMsg.opcode === 'sent') {
+
+            $rootScope.$emit('notifier:toMe', parsedMsg);
+          } else if (parsedMsg.opcode === 'broadcasted') {
+
+            $rootScope.$emit('notifier:toAll', parsedMsg);
+          }
+        };
+
+        angular.forEach(whenAwareOfPresenceEvents, function forEachFunction(value) {
+
+          $rootScope.$on(value, userIsPresent);
+        });
+
+        var broadcast = function broadcast(what) {
+
+              if (whoami &&
+                websocket) {
 
                 var toSend = {
                   'whoami': whoami,
@@ -79,8 +132,8 @@
             }
           , sendTo = function sendTo(who, what) {
 
-              if (!!whoami &&
-                !!websocket) {
+              if (whoami &&
+                websocket) {
 
                 var toSend = {
                   'whoami': whoami,
@@ -94,48 +147,6 @@
                 $window.console.error('User identification required');
               }
             };
-
-        websocket.push = websocket.send;
-        websocket.onopen = function onWebSocketOpening() {
-
-          angular.forEach(whenAwareOfPresenceEvents, function forEachFunction(value) {
-
-            $rootScope.$on(value, userIsPresent);
-          });
-          $window.console.info('Trasport', this, 'opened.');
-        };
-
-        websocket.send = function send(opcode, data) {
-
-          if (websocket.readyState === $window.WebSocket.OPEN) {
-
-            websocket.push(JSON.stringify({
-              'opcode': opcode,
-              'token': token,
-              'data': data
-            }));
-          } else {
-
-            $window.console.warn('Trasport to server is not ready.');
-          }
-        };
-
-        websocket.onmessage = function onWebSocketMessage(event) {
-
-          var parsedMsg = JSON.parse(event.data);
-          if (parsedMsg.opcode === 'joined') {
-
-            whoami = parsedMsg.whoami;
-            token = parsedMsg.token;
-          } else if (parsedMsg.opcode === 'sent') {
-
-            $rootScope.$emit('directNotificationArrived', parsedMsg);
-          } else if (parsedMsg.opcode === 'broadcasted') {
-
-            $rootScope.$emit('broadcastNotificationArrived', parsedMsg);
-          }
-        };
-
         return {
           'broadcast': broadcast,
           'sendTo': sendTo
