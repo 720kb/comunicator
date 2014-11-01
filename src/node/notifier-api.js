@@ -2,7 +2,7 @@
 (function (module, require, process, console) {
   'use strict';
 
-  module.exports = function toExport(jwtSaltKey) {
+  module.exports = function toExport(notifier, jwtSaltKey) {
     var sockets = {}
       , ws = require('ws')
       , jwt = require('jsonwebtoken')
@@ -131,6 +131,6 @@
     eventEmitter.broadcast = broadcast;
     eventEmitter.sendTo = sendTo;
 
-    return eventEmitter;
+    notifier = eventEmitter;
   };
 }(module, require, process, console));
