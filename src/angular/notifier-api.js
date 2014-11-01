@@ -9,17 +9,16 @@
     var websocket
       , whenAwareOfPresenceEvents;
 
-    websocket.onopen = function onWebSocketOpening() {
-
-      $window.console.info('Trasport', this, 'opened.');
-    };
-
     return {
       'setNotifierServerURL': function setNotifierServerURL(url) {
 
         if (url) {
 
-          websocket = new $window.WebSocket(url)
+          websocket = new window.WebSocket(url);
+          websocket.onopen = function onWebSocketOpening() {
+
+            window.console.info('Trasport', this, 'opened.');
+          };
         } else {
 
           window.console.error('Please provide a valid URL.');
@@ -37,15 +36,8 @@
       },
       '$get': ['$window', '$rootScope', function instantiateProvider($window, $rootScope) {
 
-        if (!websocket ||
-          !whenAwareOfPresenceEvents) {
-
-            var complainMessage = 'Mandatory fields notifierServerURL and whenAwareOfPresenceEvents required';
-            $window.console.error(complainMessage, websocket, whenAwareOfPresenceEvents);
-            throw complainMessage;
-        }
-
-        var whoami
+        var complainMessage
+          , whoami
           , token
           , doJoin = function() {
 
@@ -74,7 +66,49 @@
 
                 $window.console.error('User identification datas missing.');
               }
+            }
+          , broadcast = function broadcast(what) {
+
+              if (whoami &&
+                websocket) {
+
+                var toSend = {
+                  'whoami': whoami,
+                  'who': '*',
+                  'what': what
+                };
+
+                websocket.send('broadcast', toSend);
+              } else {
+
+                $window.console.error('User identification required');
+              }
+            }
+          , sendTo = function sendTo(who, what) {
+
+              if (whoami &&
+                websocket) {
+
+                var toSend = {
+                  'whoami': whoami,
+                  'who': who,
+                  'what': what
+                };
+
+                websocket.send('sendTo', toSend);
+              } else {
+
+                $window.console.error('User identification required');
+              }
             };
+
+        if (!websocket ||
+          !whenAwareOfPresenceEvents) {
+
+          complainMessage = 'Mandatory fields notifierServerURL and whenAwareOfPresenceEvents required';
+          $window.console.error(complainMessage, websocket, whenAwareOfPresenceEvents);
+          throw complainMessage;
+        }
 
         websocket.push = websocket.send;
         websocket.send = function send(opcode, data) {
@@ -113,40 +147,6 @@
           $rootScope.$on(value, userIsPresent);
         });
 
-        var broadcast = function broadcast(what) {
-
-              if (whoami &&
-                websocket) {
-
-                var toSend = {
-                  'whoami': whoami,
-                  'who': '*',
-                  'what': what
-                };
-
-                websocket.send('broadcast', toSend);
-              } else {
-
-                $window.console.error('User identification required');
-              }
-            }
-          , sendTo = function sendTo(who, what) {
-
-              if (whoami &&
-                websocket) {
-
-                var toSend = {
-                  'whoami': whoami,
-                  'who': who,
-                  'what': what
-                };
-
-                websocket.send('sendTo', toSend);
-              } else {
-
-                $window.console.error('User identification required');
-              }
-            };
         return {
           'broadcast': broadcast,
           'sendTo': sendTo
