@@ -7,7 +7,7 @@
   .provider('Notifier', function providerFunction() {
 
     var websocket;
-      , whenAwareOfPresenceEvents
+      , whenAwareOfPresenceEvents;
 
     websocket.onopen = function onWebSocketOpening() {
 
