@@ -6,7 +6,7 @@
   angular.module('720kb.notifier', [])
   .provider('Notifier', function providerFunction() {
 
-    var websocket;
+    var websocket
       , whenAwareOfPresenceEvents;
 
     websocket.onopen = function onWebSocketOpening() {
