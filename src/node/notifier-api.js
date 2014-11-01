@@ -6,7 +6,8 @@
     var sockets = {}
       , ws = require('ws')
       , jwt = require('jsonwebtoken')
-      , eventEmitter = require('events').EventEmitter
+      , EventEmitter = require('events').EventEmitter
+      , eventEmitter = new EventEmitter()
       , WebSocketServer = ws.Server
       , wss = new WebSocketServer({'host': '0.0.0.0', 'port': process.env.NOTIFER_PORT}, function () {
 
