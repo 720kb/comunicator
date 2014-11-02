@@ -26,16 +26,16 @@
       '$get': ['$window', '$rootScope', function instantiateProvider($window, $rootScope) {
 
         var complainMessage
-          , whoami
-          , token
-          , doJoin = function() {
+          , whoReallyAmI
+          , reallyToken
+          , doJoin = function doJoin() {
 
               if (websocket.readyState === $window.WebSocket.OPEN) {
 
                 websocket.push(JSON.stringify({
                   'opcode': 'join',
-                  'whoami': whoami,
-                  'token': token
+                  'whoami': whoReallyAmI,
+                  'token': reallyToken
                 }));
               } else {
 
@@ -43,12 +43,12 @@
                 $window.requestAnimationFrame(doJoin);
               }
             }
-          , userIsPresent = function userIsPresent(data) {/*{'userId': '<user-identification>', 'token': '<user-security-token>'}*/
-              whoami = data.userId;
-              token = data.token;
+          , userIsPresent = function userIsPresent(whoami, token) {
+              whoReallyAmI = whoami;
+              reallyToken = token;
 
-              if (whoami &&
-                token) {
+              if (whoReallyAmI &&
+                reallyToken) {
 
                 doJoin();
               } else {
@@ -58,11 +58,11 @@
             }
           , broadcast = function broadcast(what) {
 
-              if (whoami &&
+              if (whoReallyAmI &&
                 websocket) {
 
                 var toSend = {
-                  'whoami': whoami,
+                  'whoami': whoReallyAmI,
                   'who': '*',
                   'what': what
                 };
@@ -75,11 +75,11 @@
             }
           , sendTo = function sendTo(who, what) {
 
-              if (whoami &&
+              if (whoReallyAmI &&
                 websocket) {
 
                 var toSend = {
-                  'whoami': whoami,
+                  'whoami': whoReallyAmI,
                   'who': who,
                   'what': what
                 };
@@ -105,7 +105,7 @@
 
             websocket.push(JSON.stringify({
               'opcode': opcode,
-              'token': token,
+              'token': reallyToken,
               'data': data
             }));
           } else {
