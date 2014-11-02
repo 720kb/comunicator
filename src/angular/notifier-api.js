@@ -1,67 +1,61 @@
-/*global angular document window*/
+/*global angular window*/
 
-(function withAngular(angular, document, window) {
+(function withAngular(angular, window) {
   'use strict';
 
   angular.module('720kb.notifier', [])
   .provider('Notifier', function providerFunction() {
 
-    var websocket
-      , whoami
-      , token
-      , doJoin = function() {
+    var websocket;
 
-          if (websocket.readyState === window.WebSocket.OPEN) {
-
-            websocket.push(JSON.stringify({
-              'opcode': 'join',
-              'whoami': whoami,
-              'token': token
-            }));
-          } else {
-
-            window.console.info('Trasport to server is not yet ready. Retry...');
-            window.requestAnimationFrame(doJoin);
-          }
-        }
-      , userIsPresent = function userIsPresent(eventsInformations, data) {/*{'userId': '<user-identification>', 'token': '<user-security-token>'}*/
-          whoami = data.userId;
-          token = data.token;
-
-          if (whoami &&
-            token) {
-
-            doJoin();
-          } else {
-
-            window.console.error('User identification datas missing.');
-          }
-        };
     return {
-      'configureNotifier': function configureNotifier(url, events) {
+      'setNotifierServerURL': function setNotifierServerURL(url) {
 
-        if (url &&
-          events) {
+        if (url) {
 
           websocket = new window.WebSocket(url);
           websocket.onopen = function onWebSocketOpening() {
 
             window.console.info('Trasport', this, 'opened.');
           };
-
-          angular.forEach(events, function forEachFunction(value) {
-
-            angular.element(document.querySelector('*[ng-app]')).scope().$on(value, userIsPresent);
-          });
         } else {
 
-          window.console.error('Please provide a valid URL or ' +
-            'provide some events where register the user presence notifier call');
+          window.console.error('Please provide a valid URL.');
         }
       },
       '$get': ['$window', '$rootScope', function instantiateProvider($window, $rootScope) {
 
         var complainMessage
+          , whoami
+          , token
+          , doJoin = function() {
+
+              if (websocket.readyState === $window.WebSocket.OPEN) {
+
+                websocket.push(JSON.stringify({
+                  'opcode': 'join',
+                  'whoami': whoami,
+                  'token': token
+                }));
+              } else {
+
+                $window.console.info('Trasport to server is not yet ready. Retry...');
+                $window.requestAnimationFrame(doJoin);
+              }
+            }
+          , userIsPresent = function userIsPresent(data) {/*{'userId': '<user-identification>', 'token': '<user-security-token>'}*/
+              whoami = data.userId;
+              token = data.token;
+
+              if (whoami &&
+                token) {
+
+                doJoin();
+              } else {
+
+                $window.console.error('User identification datas missing.');
+              }
+            }
           , broadcast = function broadcast(what) {
 
               if (whoami &&
@@ -99,7 +93,7 @@
 
         if (!websocket) {
 
-          complainMessage = 'Configuration was incomplete.';
+          complainMessage = 'Mandatory field notifierServerURL required';
           $window.console.error(complainMessage, websocket);
           throw complainMessage;
         }
@@ -137,10 +131,11 @@
         };
 
         return {
+          'userIsPresent': userIsPresent,
           'broadcast': broadcast,
           'sendTo': sendTo
         };
       }]
     };
   });
-}(angular, document, window));
+}(angular, window));
