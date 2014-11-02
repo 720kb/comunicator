@@ -1,72 +1,67 @@
-/*global angular window*/
+/*global angular document window*/
 
-(function withAngular(angular, window) {
+(function withAngular(angular, document, window) {
   'use strict';
 
   angular.module('720kb.notifier', [])
   .provider('Notifier', function providerFunction() {
 
     var websocket
-      , whenAwareOfPresenceEvents;
+      , whoami
+      , token
+      , doJoin = function() {
 
+          if (websocket.readyState === window.WebSocket.OPEN) {
+
+            websocket.push(JSON.stringify({
+              'opcode': 'join',
+              'whoami': whoami,
+              'token': token
+            }));
+          } else {
+
+            window.console.info('Trasport to server is not yet ready. Retry...');
+            window.requestAnimationFrame(doJoin);
+          }
+        }
+      , userIsPresent = function userIsPresent(eventsInformations, data) {/*{'userId': '<user-identification>', 'token': '<user-security-token>'}*/
+          whoami = data.userId;
+          token = data.token;
+
+          if (whoami &&
+            token) {
+
+            doJoin();
+          } else {
+
+            window.console.error('User identification datas missing.');
+          }
+        };
     return {
-      'setNotifierServerURL': function setNotifierServerURL(url) {
+      'configureNotifier': function configureNotifier(url, events) {
 
-        if (url) {
+        if (url &&
+          events) {
 
           websocket = new window.WebSocket(url);
           websocket.onopen = function onWebSocketOpening() {
 
             window.console.info('Trasport', this, 'opened.');
           };
+
+          angular.forEach(events, function forEachFunction(value) {
+
+            document.querySelector('*[ng-app]').scope().$on(value, userIsPresent);
+          });
         } else {
 
-          window.console.error('Please provide a valid URL.');
-        }
-      },
-      'setWhenAwareOfPresenceEvents': function setWhenAwareOfPresenceEvents(events) {
-
-        if (events) {
-
-          whenAwareOfPresenceEvents = events;
-        } else {
-
-          window.console.error('Provide some events where register the user presence notifier call');
+          window.console.error('Please provide a valid URL or ' +
+            'provide some events where register the user presence notifier call');
         }
       },
       '$get': ['$window', '$rootScope', function instantiateProvider($window, $rootScope) {
 
         var complainMessage
-          , whoami
-          , token
-          , doJoin = function() {
-
-              if (websocket.readyState === $window.WebSocket.OPEN) {
-
-                websocket.push(JSON.stringify({
-                  'opcode': 'join',
-                  'whoami': whoami,
-                  'token': token
-                }));
-              } else {
-
-                $window.console.info('Trasport to server is not yet ready. Retry...');
-                $window.requestAnimationFrame(doJoin);
-              }
-            }
-          , userIsPresent = function userIsPresent(eventsInformations, data) {/*{'userId': '<user-identification>', 'token': '<user-security-token>'}*/
-              whoami = data.userId;
-              token = data.token;
-
-              if (whoami &&
-                token) {
-
-                doJoin();
-              } else {
-
-                $window.console.error('User identification datas missing.');
-              }
-            }
           , broadcast = function broadcast(what) {
 
               if (whoami &&
@@ -102,11 +97,10 @@
               }
             };
 
-        if (!websocket ||
-          !whenAwareOfPresenceEvents) {
+        if (!websocket) {
 
-          complainMessage = 'Mandatory fields notifierServerURL and whenAwareOfPresenceEvents required';
-          $window.console.error(complainMessage, websocket, whenAwareOfPresenceEvents);
+          complainMessage = 'Configuration was incomplete.';
+          $window.console.error(complainMessage, websocket);
           throw complainMessage;
         }
 
@@ -142,11 +136,6 @@
           }
         };
 
-        angular.forEach(whenAwareOfPresenceEvents, function forEachFunction(value) {
-
-          $rootScope.$on(value, userIsPresent);
-        });
-
         return {
           'broadcast': broadcast,
           'sendTo': sendTo
@@ -154,4 +143,4 @@
       }]
     };
   });
-}(angular, window));
+}(angular, document, window));
