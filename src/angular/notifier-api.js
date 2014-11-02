@@ -51,7 +51,7 @@
 
           angular.forEach(events, function forEachFunction(value) {
 
-            document.querySelector('*[ng-app]').scope().$on(value, userIsPresent);
+            angular.element(document.querySelector('*[ng-app]')).scope().$on(value, userIsPresent);
           });
         } else {
 
