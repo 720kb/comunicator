@@ -1,5 +1,5 @@
 {
-  "name": "notifier-api",
+  "name": "notifier",
   "version": "0.0.1",
   "description": "The 720kb notifier api (atm it uses websockets)",
   "homepage": "http://720kb.net",
