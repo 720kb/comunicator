@@ -41,9 +41,6 @@
           'files': {
             '<%= confs.dist %>/<%= pkg.name %>-angular.min.js': [
               '<%= confs.angular %>/<%= pkg.name %>.js'
-            ],
-            '<%= confs.dist %>/<%= pkg.name %>-node.min.js': [
-              '<%= confs.node %>/<%= pkg.name %>.js'
             ]
           }
         }
