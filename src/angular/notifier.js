@@ -59,6 +59,8 @@
 
           window.console.error('Please provide a valid URL.');
         }
+
+        websocket.push = websocket.send;
       };
 
     return {
@@ -68,6 +70,35 @@
         var complainMessage
           , whoReallyAmI
           , reallyToken
+          , sendMessage = function send(opcode, data) {
+
+              if (websocket.readyState === $window.WebSocket.OPEN) {
+
+                websocket.push(JSON.stringify({
+                  'opcode': opcode,
+                  'token': reallyToken,
+                  'data': data
+                }));
+              } else {
+
+                $log.info('Trasport to server is not ready.');
+                $window.requestAnimationFrame(websocket.send.apply(this, [opcode, data]));
+              }
+            }
+          , onWebsocketMessage = function onWebSocketMessage(event) {
+
+              var parsedMsg = JSON.parse(event.data);
+              if (parsedMsg.opcode === 'joined') {
+
+                $rootScope.$emit('notifier:joined');
+              } else if (parsedMsg.opcode === 'sent') {
+
+                $rootScope.$emit('notifier:toMe', parsedMsg);
+              } else if (parsedMsg.opcode === 'broadcasted') {
+
+                $rootScope.$emit('notifier:toAll', parsedMsg);
+              }
+            }
           , doJoin = function doJoin() {
 
               if (websocket.readyState === $window.WebSocket.OPEN) {
@@ -80,6 +111,7 @@
               } else if (websocket.readyState === $window.WebSocket.CLOSED) {
 
                 setNotifierServerURL(websocket.url);
+                websocket.onmessage = onWebsocketMessage;
                 doJoin();
               } else {
 
@@ -149,37 +181,8 @@
           throw complainMessage;
         }
 
-        websocket.push = websocket.send;
-        websocket.send = function send(opcode, data) {
-
-          if (websocket.readyState === $window.WebSocket.OPEN) {
-
-            websocket.push(JSON.stringify({
-              'opcode': opcode,
-              'token': reallyToken,
-              'data': data
-            }));
-          } else {
-
-            $log.info('Trasport to server is not ready.');
-            $window.requestAnimationFrame(websocket.send.apply(this, [opcode, data]));
-          }
-        };
-
-        websocket.onmessage = function onWebSocketMessage(event) {
-
-          var parsedMsg = JSON.parse(event.data);
-          if (parsedMsg.opcode === 'joined') {
-
-            $rootScope.$emit('notifier:joined');
-          } else if (parsedMsg.opcode === 'sent') {
-
-            $rootScope.$emit('notifier:toMe', parsedMsg);
-          } else if (parsedMsg.opcode === 'broadcasted') {
-
-            $rootScope.$emit('notifier:toAll', parsedMsg);
-          }
-        };
+        websocket.send = sendMessage;
+        websocket.onmessage = onWebsocketMessage;
 
         return {
           'userIsPresent': userIsPresent,
