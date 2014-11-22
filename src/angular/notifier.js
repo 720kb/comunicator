@@ -111,6 +111,7 @@
               } else if (websocket.readyState === $window.WebSocket.CLOSED) {
 
                 setNotifierServerURL(websocket.url);
+                websocket.send = sendMessage;
                 websocket.onmessage = onWebsocketMessage;
                 doJoin();
               } else {
