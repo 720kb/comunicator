@@ -62,7 +62,7 @@
           window.console.error('Please provide a valid URL.');
         }
       },
-      '$get': ['$window', '$rootScope', function instantiateProvider($window, $rootScope) {
+      '$get': ['$window', '$rootScope', '$log', function instantiateProvider($window, $rootScope, $log) {
 
         var complainMessage
           , whoReallyAmI
@@ -78,7 +78,7 @@
                 }));
               } else {
 
-                $window.console.info('Trasport to server is not yet ready. Retry...');
+                $log.info('Trasport to server is not yet ready. Retry...');
                 $window.requestAnimationFrame(doJoin);
               }
             }
@@ -92,7 +92,7 @@
                 doJoin();
               } else {
 
-                $window.console.error('User identification datas missing.');
+                $log.error('User identification datas missing.');
               }
             }
           , broadcast = function broadcast(what) {
@@ -109,7 +109,7 @@
                 websocket.send('broadcast', toSend);
               } else {
 
-                $window.console.error('User identification required');
+                $log.error('User identification required');
               }
             }
           , sendTo = function sendTo(who, what) {
@@ -126,14 +126,21 @@
                 websocket.send('sendTo', toSend);
               } else {
 
-                $window.console.error('User identification required');
+                $log.error('User identification required');
+              }
+            }
+          , doClose = function doClose() {
+
+              if (websocket.readyState === $window.WebSocket.OPEN) {
+
+                websocket.close();
               }
             };
 
         if (!websocket) {
 
           complainMessage = 'Mandatory field notifierServerURL required';
-          $window.console.error(complainMessage, websocket);
+          $log.error(complainMessage, websocket);
           throw complainMessage;
         }
 
@@ -149,7 +156,7 @@
             }));
           } else {
 
-            $window.console.info('Trasport to server is not ready.');
+            $log.info('Trasport to server is not ready.');
             $window.requestAnimationFrame(websocket.send.apply(this, [opcode, data]));
           }
         };
@@ -172,7 +179,8 @@
         return {
           'userIsPresent': userIsPresent,
           'broadcast': broadcast,
-          'sendTo': sendTo
+          'sendTo': sendTo,
+          'exit': doClose
         };
       }]
     };
