@@ -45,10 +45,8 @@
   angular.module('720kb.notifier', [])
   .provider('Notifier', function providerFunction() {
 
-    var websocket;
-
-    return {
-      'setNotifierServerURL': function setNotifierServerURL(url) {
+    var websocket
+      , setNotifierServerURL = function setNotifierServerURL(url) {
 
         if (url) {
 
@@ -61,7 +59,10 @@
 
           window.console.error('Please provide a valid URL.');
         }
-      },
+      };
+
+    return {
+      'setNotifierServerURL': setNotifierServerURL,
       '$get': ['$window', '$rootScope', '$log', function instantiateProvider($window, $rootScope, $log) {
 
         var complainMessage
@@ -76,6 +77,9 @@
                   'whoami': whoReallyAmI,
                   'token': reallyToken
                 }));
+              } else if (websocket.readyState === $window.WebSocket.CLOSED) {
+
+                setNotifierServerURL(websocket.url);
               } else {
 
                 $log.info('Trasport to server is not yet ready. Retry...');
