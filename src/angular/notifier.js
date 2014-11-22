@@ -80,6 +80,7 @@
               } else if (websocket.readyState === $window.WebSocket.CLOSED) {
 
                 setNotifierServerURL(websocket.url);
+                doJoin();
               } else {
 
                 $log.info('Trasport to server is not yet ready. Retry...');
