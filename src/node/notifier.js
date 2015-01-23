@@ -75,7 +75,6 @@
 
             jwt.verify(parsedMsg.token, jwtSaltKey, function userVerified() {
 
-              eventEmitter.emit('notifier:userJoin', parsedMsg.whoami);
               sockets[parsedMsg.whoami] = aWebSocket;
               var toSend = {
                 'opcode': 'joined',
@@ -83,6 +82,7 @@
                 'token': parsedMsg.token
               };
               aWebSocket.send(JSON.stringify(toSend));
+              eventEmitter.emit('notifier:userJoin', parsedMsg.whoami);
             });
           } else
           /* {'opcode': 'sendTo', 'token': <jwt-token>, 'data': {'whoami': <id>, 'who': <id>, 'what': payload}} */
