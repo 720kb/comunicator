@@ -8,7 +8,7 @@
 
     var websocket
       , deferred
-      , timeWaitSlice = 16 /*ms*/
+      , timeWaitSlice = 64 /*ms*/
       , timeWaitSliceChoices = [0]
       , giveMeATimeWait = function giveMeATimeWait() {
 
@@ -56,7 +56,7 @@
                 nextTimeWaitSliceChoice = timeWaitSlice * (Math.pow(2, timeWaitSliceChoices.length) - 1);
                 timeWaitSliceChoices.push(nextTimeWaitSliceChoice);
                 chosenTimeWaitValue = giveMeATimeWait();
-                $log.info('Trasport to server is not ready. Choosing between', timeWaitSliceChoices, 'the value', chosenTimeWaitValue);
+                $log.info('Trasport to server is not ready. Chosen the value', chosenTimeWaitValue);
                 $timeout(websocket.send.apply(this, [opcode, data]), chosenTimeWaitValue);
               }
             }
