@@ -190,7 +190,7 @@
                 'exit': doClose
               });
 
-              if (unregisterIndex) {
+              if (!angular.isUndefined(unregisterIndex)) {
 
                 unregisterListeners[unregisterIndex]();
               }
