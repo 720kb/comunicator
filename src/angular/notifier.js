@@ -176,16 +176,31 @@
                 websocket.close();
               }
             }
-          , unregisterViewContentLoaded = $rootScope.$on('$viewContentLoaded', function onViewContentLoaded() {
+          , resolveNotifier = function resolveNotifier(unregisterListener) {
 
-              unregisterViewContentLoaded();
               deferred.resolve({
                 'userIsPresent': userIsPresent,
                 'broadcast': broadcast,
                 'sendTo': sendTo,
                 'exit': doClose
               });
-            });
+
+              if (unregisterListener) {
+
+                unregisterListener();
+              }
+            }
+          , eventsToListen = ['$stateChangeSuccess', '$routeChangeSuccess']
+          , eventsToListenLength = eventsToListen.length
+          , eventsToListenIndex = 0
+          , anEventToListen
+          , unregisterListenerFunction;
+
+        for (; eventsToListenIndex < eventsToListenLength; eventsToListenIndex += 1) {
+
+          anEventToListen = eventsToListen[eventsToListenIndex];
+          unregisterListenerFunction = $rootScope.$on(anEventToListen, resolveNotifier.bind(this, unregisterListenerFunction));
+        }
 
         if (!websocket) {
 
