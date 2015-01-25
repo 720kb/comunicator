@@ -51,7 +51,7 @@
 
                 chosenTimeWaitValue -= 1;
                 //$log.info('Decreasing chosen time wait value.');
-                var requestId = $window.requestAnimationFrame(onTick.bind(this, redoFunction));
+                var requestId = $window.requestAnimationFrame(onTick.bind(this, redoFunction, type));
                 if (type === 'send') {
 
                   sendPendingRequests.push(requestId);
