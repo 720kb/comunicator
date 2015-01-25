@@ -181,7 +181,14 @@
           , eventsToListenLength = eventsToListen.length
           , eventsToListenIndex = 0
           , anEventToListen
-          , resolveNotifier = function resolveNotifier(unregisterIndex) {
+          , resolveNotifier = function resolveNotifier() {
+
+              var unregisterListenersIndex = 0
+                , unregisterListenersLength = unregisterListeners.length;
+              for (; unregisterListenersIndex < unregisterListenersLength; unregisterListenersIndex += 1) {
+
+                unregisterListeners[unregisterListenersIndex]();
+              }
 
               deferred.resolve({
                 'userIsPresent': userIsPresent,
@@ -189,17 +196,12 @@
                 'sendTo': sendTo,
                 'exit': doClose
               });
-
-              if (!angular.isUndefined(unregisterIndex)) {
-
-                unregisterListeners[unregisterIndex]();
-              }
             };
 
         for (; eventsToListenIndex < eventsToListenLength; eventsToListenIndex += 1) {
 
           anEventToListen = eventsToListen[eventsToListenIndex];
-          unregisterListeners.push($rootScope.$on(anEventToListen, resolveNotifier.bind(this, eventsToListenIndex)));
+          unregisterListeners.push($rootScope.$on(anEventToListen, resolveNotifier));
         }
 
         if (!websocket) {
