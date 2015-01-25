@@ -42,13 +42,13 @@
           , reallyToken
           , chosenTimeWaitValue = 0
           , nextTimeWaitSliceChoice
-          , onTick = function onTick(millis, redoFunction) {
+          , onTick = function onTick(redoFunction) {
 
               if (chosenTimeWaitValue > 0) {
 
                 chosenTimeWaitValue -= 1;
                 $log.info('Decreasing chosen time wait value.');
-                $window.requestAnimationFrame(onTick);
+                $window.requestAnimationFrame(onTick.bind(this, redoFunction));
               } else {
 
                 nextTimeWaitSliceChoice = timeWaitSlice * (Math.pow(2, timeWaitSliceChoices.length) - 1);
