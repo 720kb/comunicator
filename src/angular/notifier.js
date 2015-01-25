@@ -74,10 +74,14 @@
             }
           , onWebsocketClose = function onWebsocketClose() {
 
-              $rootScope.$emit('notifier:closed');
-              /*eslint-disable no-use-before-define*/
-              doJoin();
-              /*eslint-enable no-use-before-define*/
+              if (whoReallyAmI &&
+                reallyToken) {
+
+                $rootScope.$emit('notifier:closed');
+                /*eslint-disable no-use-before-define*/
+                doJoin();
+                /*eslint-enable no-use-before-define*/
+              }
             }
           , sendMessage = function send(opcode, data) {
 
