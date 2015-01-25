@@ -72,6 +72,18 @@
                 $rootScope.$emit('notifier:toAll', parsedMsg);
               }
             }
+          , onWebsocketClose = function onWebsocketClose() {
+
+              $rootScope.$emit('notifier:closed');
+              /*eslint-disable no-use-before-define*/
+              doJoin();
+              /*eslint-enable no-use-before-define*/
+            }
+          , onWebsocketError = function onWebsocketError() {
+
+              $rootScope.$emit('notifier:error');
+              $log.error('ON ERROR WS BAM!');
+            }
           , sendMessage = function send(opcode, data) {
 
               var onTickBoundedOnSend = onTick.bind(this, sendMessage.bind(this, opcode, data));
@@ -82,13 +94,9 @@
                   'token': reallyToken,
                   'data': data
                 }));
-              } else if (websocket.readyState === $window.WebSocket.CLOSED ||
-                websocket.readyState === $window.WebSocket.CONNECTING) {
+              } else {
 
-                $log.info('Trasport to server is not ready.');
-                /*eslint-disable no-use-before-define*/
-                doJoin();
-                /*eslint-enable no-use-before-define*/
+                $log.info('Trasport to server is not ready. Delay sending...');
                 $window.requestAnimationFrame(onTickBoundedOnSend);
               }
             }
@@ -102,15 +110,14 @@
                   'whoami': whoReallyAmI,
                   'token': reallyToken
                 }));
-              } else if (websocket.readyState === $window.WebSocket.CLOSED) {
+              } else {
 
+                $log.info('Trasport to server is not yet ready. Delay joining...');
                 setNotifierServerURL(websocket.url);
                 websocket.send = sendMessage;
                 websocket.onmessage = onWebsocketMessage;
-                doJoin();
-              } else {
-
-                $log.info('Trasport to server is not yet ready. Retry...');
+                websocket.onclose = onWebsocketClose;
+                websocket.onerror = onWebsocketError;
                 $window.requestAnimationFrame(onTickBoundedOnDoJoin);
               }
             }
@@ -205,6 +212,8 @@
 
         websocket.send = sendMessage;
         websocket.onmessage = onWebsocketMessage;
+        websocket.onclose = onWebsocketClose;
+        websocket.onerror = onWebsocketError;
 
         return deferred.promise;
       }]
