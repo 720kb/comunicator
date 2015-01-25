@@ -42,7 +42,7 @@
           , reallyToken
           , chosenTimeWaitValue = 0
           , nextTimeWaitSliceChoice
-          , onTick = function onTick(redoFunction) {
+          , onTick = function onTick(millis, redoFunction) {
 
               if (chosenTimeWaitValue > 0) {
 
