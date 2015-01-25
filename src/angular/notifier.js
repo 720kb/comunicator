@@ -79,11 +79,6 @@
               doJoin();
               /*eslint-enable no-use-before-define*/
             }
-          , onWebsocketError = function onWebsocketError() {
-
-              $rootScope.$emit('notifier:error');
-              $log.error('ON ERROR WS BAM!');
-            }
           , sendMessage = function send(opcode, data) {
 
               var onTickBoundedOnSend = onTick.bind(this, sendMessage.bind(this, opcode, data));
@@ -110,14 +105,17 @@
                   'whoami': whoReallyAmI,
                   'token': reallyToken
                 }));
-              } else {
+              } else if (websocket.readyState === $window.WebSocket.CONNECTING) {
 
                 $log.info('Trasport to server is not yet ready. Delay joining...');
+                $window.requestAnimationFrame(onTickBoundedOnDoJoin);
+              } else {
+
+                $log.info('Trasport to server is down by now. Delay joining...');
                 setNotifierServerURL(websocket.url);
                 websocket.send = sendMessage;
                 websocket.onmessage = onWebsocketMessage;
                 websocket.onclose = onWebsocketClose;
-                websocket.onerror = onWebsocketError;
                 $window.requestAnimationFrame(onTickBoundedOnDoJoin);
               }
             }
@@ -213,7 +211,6 @@
         websocket.send = sendMessage;
         websocket.onmessage = onWebsocketMessage;
         websocket.onclose = onWebsocketClose;
-        websocket.onerror = onWebsocketError;
 
         return deferred.promise;
       }]
