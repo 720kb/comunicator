@@ -41,36 +41,21 @@
           , whoReallyAmI
           , reallyToken
           , chosenTimeWaitValue = 0
-          , sendMessage = function send(opcode, data) {
+          , nextTimeWaitSliceChoice
+          , onTick = function onTick(redoFunction) {
 
-              var nextTimeWaitSliceChoice
-                , onTick = function onTick() {
+              if (chosenTimeWaitValue > 0) {
 
-                    if (chosenTimeWaitValue > 0) {
-
-                      chosenTimeWaitValue -= 1;
-                      $log.info('Decreasing chosen time wait value.');
-                      $window.requestAnimationFrame(onTick);
-                    } else {
-
-                      nextTimeWaitSliceChoice = timeWaitSlice * (Math.pow(2, timeWaitSliceChoices.length) - 1);
-                      timeWaitSliceChoices.push(nextTimeWaitSliceChoice);
-                      chosenTimeWaitValue = giveMeATimeWait();
-                      $log.info('Chosen time wait value:', chosenTimeWaitValue);
-                      websocket.send.apply(this, [opcode, data]);
-                    }
-                  };
-              if (websocket.readyState === $window.WebSocket.OPEN) {
-
-                websocket.push(JSON.stringify({
-                  'opcode': opcode,
-                  'token': reallyToken,
-                  'data': data
-                }));
+                chosenTimeWaitValue -= 1;
+                $log.info('Decreasing chosen time wait value.');
+                $window.requestAnimationFrame(onTick);
               } else {
 
-                $log.info('Trasport to server is not ready.');
-                $window.requestAnimationFrame(onTick);
+                nextTimeWaitSliceChoice = timeWaitSlice * (Math.pow(2, timeWaitSliceChoices.length) - 1);
+                timeWaitSliceChoices.push(nextTimeWaitSliceChoice);
+                chosenTimeWaitValue = giveMeATimeWait();
+                $log.info('Chosen time wait value:', chosenTimeWaitValue);
+                redoFunction();
               }
             }
           , onWebsocketMessage = function onWebSocketMessage(event) {
@@ -87,8 +72,30 @@
                 $rootScope.$emit('notifier:toAll', parsedMsg);
               }
             }
+          , sendMessage = function send(opcode, data) {
+
+              var onTickBoundedOnSend = onTick.bind(this, sendMessage.bind(this, opcode, data));
+              if (websocket.readyState === $window.WebSocket.OPEN) {
+
+                websocket.push(JSON.stringify({
+                  'opcode': opcode,
+                  'token': reallyToken,
+                  'data': data
+                }));
+              } else if (websocket.readyState === $window.WebSocket.CLOSED) {
+
+                /*eslint-disable no-use-before-define*/
+                doJoin();
+                /*eslint-enable no-use-before-define*/
+              } else {
+
+                $log.info('Trasport to server is not ready.');
+                $window.requestAnimationFrame(onTickBoundedOnSend);
+              }
+            }
           , doJoin = function doJoin() {
 
+              var onTickBoundedOnDoJoin = onTick.bind(this, doJoin);
               if (websocket.readyState === $window.WebSocket.OPEN) {
 
                 websocket.push(JSON.stringify({
@@ -105,7 +112,7 @@
               } else {
 
                 $log.info('Trasport to server is not yet ready. Retry...');
-                $window.requestAnimationFrame(doJoin);
+                $window.requestAnimationFrame(onTickBoundedOnDoJoin);
               }
             }
           , userIsPresent = function userIsPresent(whoami, token) {
