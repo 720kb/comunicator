@@ -1,44 +1,5 @@
 /*global angular window*/
 
-// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
-// http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
-// requestAnimationFrame polyfill by Erik Möller. fixes from Paul Irish and Tino Zijdel
-// MIT license
-(function rafPolyfill() {
-  'use strict';
-
-  var lastTime = 0
-    , vendors = ['ms', 'moz', 'webkit', 'o']
-    , x = 0;
-
-  for (; x < vendors.length && !window.requestAnimationFrame; x += 1) {
-
-    window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
-    window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
-  }
-
-  if (!window.requestAnimationFrame) {
-
-    window.requestAnimationFrame = function rafPolyfill(callback) {
-      var currTime = new Date().getTime()
-        , timeToCall = Math.max(0, 16 - (currTime - lastTime))
-        , id = window.setTimeout(function endTimeOut() {
-            callback(currTime + timeToCall);
-          }, timeToCall);
-
-      lastTime = currTime + timeToCall;
-      return id;
-    };
-  }
-
-  if (!window.cancelAnimationFrame) {
-
-    window.cancelAnimationFrame = function cafPolyfill(id) {
-      window.clearTimeout(id);
-    };
-  }
-}());
-
 (function withAngular(angular, window) {
   'use strict';
 
@@ -47,6 +8,12 @@
 
     var websocket
       , deferred
+      , timeWaitSlice = 16 /*ms*/
+      , timeWaitSliceChoices = [0]
+      , giveMeATimeWait = function giveMeATimeWait() {
+
+          return Math.floor(Math.random() * (timeWaitSliceChoices.length + 1));
+        }
       , setNotifierServerURL = function setNotifierServerURL(url) {
 
         if (url) {
@@ -66,7 +33,8 @@
 
     return {
       'setNotifierServerURL': setNotifierServerURL,
-      '$get': ['$window', '$rootScope', '$log', '$q', function instantiateProvider($window, $rootScope, $log, $q) {
+      '$get': ['$window', '$rootScope', '$timeout', '$log', '$q',
+      function instantiateProvider($window, $rootScope, $timeout, $log, $q) {
 
         deferred = $q.defer();
         var complainMessage
@@ -74,6 +42,8 @@
           , reallyToken
           , sendMessage = function send(opcode, data) {
 
+              var nextTimeWaitSliceChoice
+                , chosenTimeWaitValue;
               if (websocket.readyState === $window.WebSocket.OPEN) {
 
                 websocket.push(JSON.stringify({
@@ -83,8 +53,11 @@
                 }));
               } else {
 
-                $log.info('Trasport to server is not ready.');
-                $window.requestAnimationFrame(websocket.send.apply(this, [opcode, data]));
+                nextTimeWaitSliceChoice = timeWaitSlice * (Math.pow(2, timeWaitSliceChoices.length) - 1);
+                timeWaitSliceChoices.push(nextTimeWaitSliceChoice);
+                chosenTimeWaitValue = giveMeATimeWait();
+                $log.info('Trasport to server is not ready. Choosing between', timeWaitSliceChoices, 'the value', chosenTimeWaitValue);
+                $timeout(websocket.send.apply(this, [opcode, data]), chosenTimeWaitValue);
               }
             }
           , onWebsocketMessage = function onWebSocketMessage(event) {
