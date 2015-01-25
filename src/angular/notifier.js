@@ -47,14 +47,14 @@
               if (chosenTimeWaitValue > 0) {
 
                 chosenTimeWaitValue -= 1;
-                $log.info('Decreasing chosen time wait value.');
+                //$log.info('Decreasing chosen time wait value.');
                 $window.requestAnimationFrame(onTick.bind(this, redoFunction));
               } else {
 
                 nextTimeWaitSliceChoice = timeWaitSlice * (Math.pow(2, timeWaitSliceChoices.length) - 1);
                 timeWaitSliceChoices.push(nextTimeWaitSliceChoice);
                 chosenTimeWaitValue = giveMeATimeWait();
-                $log.info('Chosen time wait value:', chosenTimeWaitValue);
+                //$log.info('Chosen time wait value:', chosenTimeWaitValue);
                 redoFunction();
               }
             }
