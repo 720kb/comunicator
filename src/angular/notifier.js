@@ -42,13 +42,23 @@
           , reallyToken
           , chosenTimeWaitValue = 0
           , nextTimeWaitSliceChoice
-          , onTick = function onTick(redoFunction) {
+          , sendPendingRequests = []
+          , joinPendingRequests = []
+          , onTick = function onTick(redoFunction, type) {
 
-              if (chosenTimeWaitValue > 0) {
+              if (chosenTimeWaitValue > 0 &&
+                websocket.readyState !== $window.WebSocket.OPEN) {
 
                 chosenTimeWaitValue -= 1;
                 //$log.info('Decreasing chosen time wait value.');
-                $window.requestAnimationFrame(onTick.bind(this, redoFunction));
+                var requestId = $window.requestAnimationFrame(onTick.bind(this, redoFunction));
+                if (type === 'send') {
+
+                  sendPendingRequests.push(requestId);
+                } else {
+
+                  joinPendingRequests.push(requestId);
+                }
               } else {
 
                 nextTimeWaitSliceChoice = timeWaitSlice * (Math.pow(2, timeWaitSliceChoices.length) - 1);
@@ -85,7 +95,11 @@
             }
           , sendMessage = function send(opcode, data) {
 
-              var onTickBoundedOnSend = onTick.bind(this, sendMessage.bind(this, opcode, data));
+              var onTickBoundedOnSend = onTick.bind(this, sendMessage.bind(this, opcode, data), 'send')
+                , requestId
+                , sendPendingRequestsIndex = 0
+                , sendPendingRequestsLength
+                , aPendingRequest;
               if (websocket.readyState === $window.WebSocket.OPEN) {
 
                 websocket.push(JSON.stringify({
@@ -93,15 +107,27 @@
                   'token': reallyToken,
                   'data': data
                 }));
+
+                for (sendPendingRequestsIndex = 0, sendPendingRequestsLength = sendPendingRequests.length; sendPendingRequestsIndex < sendPendingRequestsLength; sendPendingRequestsIndex += 1) {
+
+                  aPendingRequest = sendPendingRequests[sendPendingRequestsIndex];
+                  $window.cancelAnimationFrame(aPendingRequest);
+                }
+                sendPendingRequests = [];
               } else {
 
                 $log.info('Trasport to server is not ready. Delay sending...');
-                $window.requestAnimationFrame(onTickBoundedOnSend);
+                requestId = $window.requestAnimationFrame(onTickBoundedOnSend);
+                sendPendingRequests.push(requestId);
               }
             }
           , doJoin = function doJoin() {
 
-              var onTickBoundedOnDoJoin = onTick.bind(this, doJoin);
+              var onTickBoundedOnDoJoin = onTick.bind(this, doJoin, 'join')
+                , requestId
+                , joinPendingRequestsIndex = 0
+                , joinPendingRequestsLength
+                , aPendingRequest;
               if (websocket.readyState === $window.WebSocket.OPEN) {
 
                 websocket.push(JSON.stringify({
@@ -109,10 +135,19 @@
                   'whoami': whoReallyAmI,
                   'token': reallyToken
                 }));
+
+
+                for (joinPendingRequestsIndex = 0, joinPendingRequestsLength = joinPendingRequests.length; joinPendingRequestsIndex < joinPendingRequestsLength; joinPendingRequestsIndex += 1) {
+
+                  aPendingRequest = joinPendingRequests[joinPendingRequestsIndex];
+                  $window.cancelAnimationFrame(aPendingRequest);
+                }
+                joinPendingRequests = [];
               } else if (websocket.readyState === $window.WebSocket.CONNECTING) {
 
                 $log.info('Trasport to server is not yet ready. Delay joining...');
-                $window.requestAnimationFrame(onTickBoundedOnDoJoin);
+                requestId = $window.requestAnimationFrame(onTickBoundedOnDoJoin);
+                joinPendingRequests.push(requestId);
               } else {
 
                 $log.info('Trasport to server is down by now. Delay joining...');
@@ -120,7 +155,8 @@
                 websocket.send = sendMessage;
                 websocket.onmessage = onWebsocketMessage;
                 websocket.onclose = onWebsocketClose;
-                $window.requestAnimationFrame(onTickBoundedOnDoJoin);
+                requestId = $window.requestAnimationFrame(onTickBoundedOnDoJoin);
+                joinPendingRequests.push(requestId);
               }
             }
           , userIsPresent = function userIsPresent(whoami, token) {
