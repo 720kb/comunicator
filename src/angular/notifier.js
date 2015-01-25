@@ -82,14 +82,13 @@
                   'token': reallyToken,
                   'data': data
                 }));
-              } else if (websocket.readyState === $window.WebSocket.CLOSED) {
+              } else if (websocket.readyState === $window.WebSocket.CLOSED ||
+                websocket.readyState === $window.WebSocket.CONNECTING) {
 
+                $log.info('Trasport to server is not ready.');
                 /*eslint-disable no-use-before-define*/
                 doJoin();
                 /*eslint-enable no-use-before-define*/
-              } else {
-
-                $log.info('Trasport to server is not ready.');
                 $window.requestAnimationFrame(onTickBoundedOnSend);
               }
             }
