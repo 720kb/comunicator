@@ -176,7 +176,12 @@
                 websocket.close();
               }
             }
-          , resolveNotifier = function resolveNotifier(unregisterListener) {
+          , eventsToListen = ['$stateChangeSuccess', '$routeChangeSuccess']
+          , unregisterListeners = []
+          , eventsToListenLength = eventsToListen.length
+          , eventsToListenIndex = 0
+          , anEventToListen
+          , resolveNotifier = function resolveNotifier(unregisterIndex) {
 
               deferred.resolve({
                 'userIsPresent': userIsPresent,
@@ -185,21 +190,16 @@
                 'exit': doClose
               });
 
-              if (unregisterListener) {
+              if (unregisterIndex) {
 
-                unregisterListener();
+                unregisterListeners[unregisterIndex]();
               }
-            }
-          , eventsToListen = ['$stateChangeSuccess', '$routeChangeSuccess']
-          , eventsToListenLength = eventsToListen.length
-          , eventsToListenIndex = 0
-          , anEventToListen
-          , unregisterListenerFunction;
+            };
 
         for (; eventsToListenIndex < eventsToListenLength; eventsToListenIndex += 1) {
 
           anEventToListen = eventsToListen[eventsToListenIndex];
-          unregisterListenerFunction = $rootScope.$on(anEventToListen, resolveNotifier.bind(this, unregisterListenerFunction));
+          unregisterListeners.push($rootScope.$on(anEventToListen, resolveNotifier.bind(this, eventsToListenIndex)));
         }
 
         if (!websocket) {
