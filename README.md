@@ -1,4 +1,4 @@
-notifier
+comunicator
 =========
 
 A simple way to enstablish a two way comunication between a nodejs and an angularjs application.
@@ -10,7 +10,7 @@ TODO
 Installing
 =========
 
-notifier could be installed via npm `npm install notifier`
+comunicator could be installed via npm `npm install comunicator`
 
 Contributing
 =========

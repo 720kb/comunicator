@@ -3,8 +3,8 @@
 (function withAngular(angular, window) {
   'use strict';
 
-  angular.module('720kb.notifier', [])
-  .provider('Notifier', function providerFunction() {
+  angular.module('720kb.comunicator', [])
+  .provider('Comunicator', function providerFunction() {
 
     var websocket
       , deferred
@@ -14,7 +14,7 @@
 
           return Math.floor(Math.random() * (timeWaitSliceChoices.length + 1));
         }
-      , setNotifierServerURL = function setNotifierServerURL(url) {
+      , setComunicatorServerURL = function setComunicatorServerURL(url) {
 
         if (url) {
 
@@ -32,7 +32,7 @@
       };
 
     return {
-      'setNotifierServerURL': setNotifierServerURL,
+      'setComunicatorServerURL': setComunicatorServerURL,
       '$get': ['$window', '$rootScope', '$timeout', '$log', '$q',
       function instantiateProvider($window, $rootScope, $timeout, $log, $q) {
 
@@ -73,13 +73,13 @@
               var parsedMsg = JSON.parse(event.data);
               if (parsedMsg.opcode === 'joined') {
 
-                $rootScope.$emit('notifier:joined');
+                $rootScope.$emit('comunicator:joined');
               } else if (parsedMsg.opcode === 'sent') {
 
-                $rootScope.$emit('notifier:toMe', parsedMsg);
+                $rootScope.$emit('comunicator:toMe', parsedMsg);
               } else if (parsedMsg.opcode === 'broadcasted') {
 
-                $rootScope.$emit('notifier:toAll', parsedMsg);
+                $rootScope.$emit('comunicator:toAll', parsedMsg);
               }
             }
           , onWebsocketClose = function onWebsocketClose() {
@@ -87,7 +87,7 @@
               if (whoReallyAmI &&
                 reallyToken) {
 
-                $rootScope.$emit('notifier:closed');
+                $rootScope.$emit('comunicator:closed');
                 /*eslint-disable no-use-before-define*/
                 doJoin();
                 /*eslint-enable no-use-before-define*/
@@ -151,7 +151,7 @@
               } else {
 
                 $log.info('Trasport to server is down by now. Delay joining...');
-                setNotifierServerURL(websocket.url);
+                setComunicatorServerURL(websocket.url);
                 websocket.send = sendMessage;
                 websocket.onmessage = onWebsocketMessage;
                 websocket.onclose = onWebsocketClose;
@@ -218,7 +218,7 @@
           , eventsToListenLength = eventsToListen.length
           , eventsToListenIndex = 0
           , anEventToListen
-          , resolveNotifier = function resolveNotifier() {
+          , resolveComunicator = function resolveComunicator() {
 
               var unregisterListenersIndex = 0
                 , unregisterListenersLength = unregisterListeners.length;
@@ -238,12 +238,12 @@
         for (; eventsToListenIndex < eventsToListenLength; eventsToListenIndex += 1) {
 
           anEventToListen = eventsToListen[eventsToListenIndex];
-          unregisterListeners.push($rootScope.$on(anEventToListen, resolveNotifier));
+          unregisterListeners.push($rootScope.$on(anEventToListen, resolveComunicator));
         }
 
         if (!websocket) {
 
-          complainMessage = 'Mandatory field notifierServerURL required';
+          complainMessage = 'Mandatory field comunicatorServerURL required';
           $log.error(complainMessage, websocket);
           deferred.reject(complainMessage);
         }

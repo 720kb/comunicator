@@ -1,9 +1,9 @@
 {
-  "name": "notifier",
+  "name": "comunicator",
   "version": "0.0.1",
   "description": "The 720kb notifier api (atm it uses websockets)",
   "license": "MIT",
-  "homepage": "https://github.com/720kb/notifier",
+  "homepage": "https://github.com/720kb/comunicator",
   "author": {
     "name": "Dario Andrei",
     "email": "wouldgo84@gmail.com",
@@ -22,12 +22,13 @@
     "messaging"
   ],
   "bugs": {
-    "url": "http://github.com/720kb/notifier/issues"
+    "url": "http://github.com/720kb/comunicator/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/720kb/notifier.git"
+    "url": "git://github.com/720kb/comunicator.git"
   },
+  "main": "./src/node/comunicator.js",
   "dependencies": {
     "ws": "^0.7.1",
     "jsonwebtoken": "^4.1.0",
