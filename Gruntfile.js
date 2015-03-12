@@ -44,44 +44,14 @@
             ]
           }
         }
-      },
-      'watch': {
-        'dev': {
-          'files': [
-            'Gruntfile.js',
-            '<%= confs.angular %>/**/*.js',
-            '<%= confs.node %>/**/*.js'
-          ],
-          'tasks': [
-            'eslint'
-          ],
-          'options': {
-            'spawn': false
-          }
-        }
-      },
-      'concurrent': {
-        'dev': {
-          'tasks': [
-            'watch:dev'
-          ],
-          'options': {
-            'limit': '<%= concurrent.dev.tasks.length %>',
-            'logConcurrentOutput': true
-          }
-        }
       }
     });
 
     grunt.loadNpmTasks('grunt-eslint');
     grunt.loadNpmTasks('grunt-contrib-uglify');
 
-    grunt.loadNpmTasks('grunt-concurrent');
-    grunt.loadNpmTasks('grunt-contrib-watch');
-
     grunt.registerTask('default', [
-      'eslint',
-      'concurrent:dev'
+      'eslint'
     ]);
 
     grunt.registerTask('prod', [

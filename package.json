@@ -2,24 +2,8 @@
   "name": "notifier",
   "version": "0.0.1",
   "description": "The 720kb notifier api (atm it uses websockets)",
-  "homepage": "http://720kb.net",
-  "keywords": [
-    "ws",
-    "notify"
-  ],
-  "private": true,
-  "dependencies": {
-    "ws": "*",
-    "jsonwebtoken": "*",
-    "rsvp": "*"
-  },
-  "devDependencies": {
-    "grunt": "*",
-    "grunt-concurrent": "*",
-    "grunt-contrib-uglify": "*",
-    "grunt-contrib-watch": "*",
-    "grunt-eslint": "*"
-  },
+  "license": "MIT",
+  "homepage": "https://github.com/720kb/notifier",
   "author": {
     "name": "Dario Andrei",
     "email": "wouldgo84@gmail.com",
@@ -31,5 +15,27 @@
       "email": "filippo.oretti@gmail.com",
       "url": "https://github.com/45kb"
     }
-  ]
+  ],
+  "keywords": [
+    "ws",
+    "notify",
+    "messaging"
+  ],
+  "bugs": {
+    "url": "http://github.com/720kb/notifier/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/720kb/notifier.git"
+  },
+  "dependencies": {
+    "ws": "^0.7.1",
+    "jsonwebtoken": "^4.1.0",
+    "rsvp": "^3.0.17"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-contrib-uglify": "^0.8.0",
+    "grunt-eslint": "^8.0.0"
+  }
 }
