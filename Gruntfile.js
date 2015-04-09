@@ -16,6 +16,7 @@
       'confs': {
         'dist': 'dist',
         'config': 'config',
+        'js': 'src/js',
         'angular': 'src/angular',
         'node': 'src/node',
         'serverPort': 8000
@@ -27,7 +28,8 @@
         'target': [
           'Gruntfile.js',
           '<%= confs.angular %>/**/*.js',
-          '<%= confs.node %>/**/*.js'
+          '<%= confs.node %>/**/*.js',
+          '<%= confs.js %>/**/*.js'
         ]
       },
       'uglify': {
@@ -40,7 +42,8 @@
         'minifyTarget': {
           'files': {
             '<%= confs.dist %>/<%= pkg.name %>-angular.min.js': [
-              '<%= confs.angular %>/<%= pkg.name %>.js'
+              '<%= confs.angular %>/**/*.js',
+              '<%= confs.js %>/**/*.js'
             ]
           }
         }

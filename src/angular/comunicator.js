@@ -1,219 +1,55 @@
-/*global angular window*/
-
-(function withAngular(angular, window) {
+/*global angular Comunicator*/
+(function withAngular(angular, Comunicator) {
   'use strict';
 
   angular.module('720kb.comunicator', [])
   .provider('Comunicator', function providerFunction() {
 
-    var websocket
-      , deferred
-      , timeWaitSlice = 64
-      , timeWaitSliceChoices = [0]
-      , giveMeATimeWait = function giveMeATimeWait() {
+    var comunicator
+      , initComunicator = function initComunicator(url) {
 
-          return Math.floor(Math.random() * (timeWaitSliceChoices.length + 1));
-        }
-      , setComunicatorServerURL = function setComunicatorServerURL(url) {
-
-        if (url) {
-
-          websocket = new window.WebSocket(url);
-          websocket.onopen = function onWebSocketOpening() {
-
-            window.console.info('Trasport', this, 'opened.');
-          };
-        } else {
-
-          window.console.error('Please provide a valid URL.');
-        }
-
-        websocket.push = websocket.send;
-      };
+          comunicator = new Comunicator(url);
+        };
 
     return {
-      'setComunicatorServerURL': setComunicatorServerURL,
-      '$get': ['$window', '$rootScope', '$timeout', '$log', '$q',
-      function instantiateProvider($window, $rootScope, $timeout, $log, $q) {
+      'setComunicatorServerURL': initComunicator,
+      '$get': ['$rootScope', '$window', '$log',
+      function instantiateProvider($rootScope, $window, $log) {
 
-        deferred = $q.defer();
-        var complainMessage
-          , whoReallyAmI
-          , reallyToken
-          , chosenTimeWaitValue = 0
-          , nextTimeWaitSliceChoice
-          , sendPendingRequests = []
-          , joinPendingRequests = []
-          , onTick = function onTick(redoFunction, type) {
+        var arrivedJoined = function arrivedJoined() {
 
-              if (chosenTimeWaitValue > 0 &&
-                websocket.readyState !== $window.WebSocket.OPEN) {
+              $rootScope.$apply(function doApply(scope) {
 
-                chosenTimeWaitValue -= 1;
-                //$log.info('Decreasing chosen time wait value.');
-                var requestId = $window.requestAnimationFrame(onTick.bind(this, redoFunction, type));
-                if (type === 'send') {
-
-                  sendPendingRequests.push(requestId);
-                } else {
-
-                  joinPendingRequests.push(requestId);
-                }
-              } else {
-
-                nextTimeWaitSliceChoice = timeWaitSlice * (Math.pow(2, timeWaitSliceChoices.length) - 1);
-                timeWaitSliceChoices.push(nextTimeWaitSliceChoice);
-                chosenTimeWaitValue = giveMeATimeWait();
-                //$log.info('Chosen time wait value:', chosenTimeWaitValue);
-                redoFunction();
-              }
+                scope.$emit('comunicator:joined');
+              });
+              $log.debug('comunicator:joined dispatched');
             }
-          , onWebsocketMessage = function onWebSocketMessage(event) {
+          , arrivedToMe = function arrivedToMe(event) {
 
-              var parsedMsg = JSON.parse(event.data);
-              if (parsedMsg.opcode === 'joined') {
+              $rootScope.$apply(function doApply(scope) {
 
-                $rootScope.$emit('comunicator:joined');
-              } else if (parsedMsg.opcode === 'sent') {
-
-                $rootScope.$emit('comunicator:toMe', parsedMsg);
-              } else if (parsedMsg.opcode === 'broadcasted') {
-
-                $rootScope.$emit('comunicator:toAll', parsedMsg);
-              }
+                scope.$emit('comunicator:toMe', event.detail);
+              });
+              $log.debug('comunicator:toMe dispatched');
             }
-          , onWebsocketClose = function onWebsocketClose() {
+          , arrivedToAll = function arrivedToAll(event) {
 
-              if (whoReallyAmI &&
-                reallyToken) {
+              $rootScope.$apply(function doApply(scope) {
 
-                $rootScope.$emit('comunicator:closed');
-                /*eslint-disable no-use-before-define*/
-                doJoin();
-                /*eslint-enable no-use-before-define*/
-              }
+                scope.$emit('comunicator:toAll', event.detail);
+              });
+              $log.debug('comunicator:toAll dispatched');
             }
-          , sendMessage = function send(opcode, data) {
+          , arrivedClosed = function arrivedClosed() {
 
-              var onTickBoundedOnSend = onTick.bind(this, sendMessage.bind(this, opcode, data), 'send')
-                , requestId
-                , sendPendingRequestsIndex = 0
-                , sendPendingRequestsLength
-                , aPendingRequest;
-              if (websocket.readyState === $window.WebSocket.OPEN) {
+              $rootScope.$apply(function doApply(scope) {
 
-                websocket.push(JSON.stringify({
-                  'opcode': opcode,
-                  'token': reallyToken,
-                  'data': data
-                }));
-
-                for (sendPendingRequestsIndex = 0, sendPendingRequestsLength = sendPendingRequests.length; sendPendingRequestsIndex < sendPendingRequestsLength; sendPendingRequestsIndex += 1) {
-
-                  aPendingRequest = sendPendingRequests[sendPendingRequestsIndex];
-                  $window.cancelAnimationFrame(aPendingRequest);
-                }
-                sendPendingRequests = [];
-              } else {
-
-                $log.info('Trasport to server is not ready. Delay sending...');
-                requestId = $window.requestAnimationFrame(onTickBoundedOnSend);
-                sendPendingRequests.push(requestId);
-              }
-            }
-          , doJoin = function doJoin() {
-
-              var onTickBoundedOnDoJoin = onTick.bind(this, doJoin, 'join')
-                , requestId
-                , joinPendingRequestsIndex = 0
-                , joinPendingRequestsLength
-                , aPendingRequest;
-              if (websocket.readyState === $window.WebSocket.OPEN) {
-
-                websocket.push(JSON.stringify({
-                  'opcode': 'join',
-                  'whoami': whoReallyAmI,
-                  'token': reallyToken
-                }));
-
-
-                for (joinPendingRequestsIndex = 0, joinPendingRequestsLength = joinPendingRequests.length; joinPendingRequestsIndex < joinPendingRequestsLength; joinPendingRequestsIndex += 1) {
-
-                  aPendingRequest = joinPendingRequests[joinPendingRequestsIndex];
-                  $window.cancelAnimationFrame(aPendingRequest);
-                }
-                joinPendingRequests = [];
-              } else if (websocket.readyState === $window.WebSocket.CONNECTING) {
-
-                $log.info('Trasport to server is not yet ready. Delay joining...');
-                requestId = $window.requestAnimationFrame(onTickBoundedOnDoJoin);
-                joinPendingRequests.push(requestId);
-              } else {
-
-                $log.info('Trasport to server is down by now. Delay joining...');
-                setComunicatorServerURL(websocket.url);
-                websocket.send = sendMessage;
-                websocket.onmessage = onWebsocketMessage;
-                websocket.onclose = onWebsocketClose;
-                requestId = $window.requestAnimationFrame(onTickBoundedOnDoJoin);
-                joinPendingRequests.push(requestId);
-              }
-            }
-          , userIsPresent = function userIsPresent(whoami, token) {
-              whoReallyAmI = whoami;
-              reallyToken = token;
-
-              if (whoReallyAmI &&
-                reallyToken) {
-
-                doJoin();
-              } else {
-
-                $log.error('User identification datas missing.');
-              }
-            }
-          , broadcast = function broadcast(what) {
-
-              if (whoReallyAmI &&
-                websocket) {
-
-                var toSend = {
-                  'whoami': whoReallyAmI,
-                  'who': '*',
-                  'what': what
-                };
-
-                websocket.send('broadcast', toSend);
-              } else {
-
-                $log.error('User identification required');
-              }
-            }
-          , sendTo = function sendTo(who, what) {
-
-              if (whoReallyAmI &&
-                websocket) {
-
-                var toSend = {
-                  'whoami': whoReallyAmI,
-                  'who': who,
-                  'what': what
-                };
-
-                websocket.send('sendTo', toSend);
-              } else {
-
-                $log.error('User identification required');
-              }
-            }
-          , doClose = function doClose() {
-
-              if (websocket.readyState === $window.WebSocket.OPEN) {
-
-                websocket.close();
-              }
+                scope.$emit('comunicator:closed');
+              });
+              $log.debug('comunicator:closed dispatched');
             }
           , eventsToListen = ['$stateChangeSuccess', '$routeChangeSuccess']
+          , domEvent = 'comunicator:ready'
           , unregisterListeners = []
           , eventsToListenLength = eventsToListen.length
           , eventsToListenIndex = 0
@@ -221,19 +57,29 @@
           , resolveComunicator = function resolveComunicator() {
 
               var unregisterListenersIndex = 0
-                , unregisterListenersLength = unregisterListeners.length;
+                , unregisterListenersLength = unregisterListeners.length
+                , kickOffEvent = new $window.Event(domEvent);
               for (; unregisterListenersIndex < unregisterListenersLength; unregisterListenersIndex += 1) {
 
                 unregisterListeners[unregisterListenersIndex]();
               }
 
-              deferred.resolve({
-                'userIsPresent': userIsPresent,
-                'broadcast': broadcast,
-                'sendTo': sendTo,
-                'exit': doClose
-              });
+              $window.dispatchEvent(kickOffEvent);
+              $log.debug('KickOff DOM Event triggered');
             };
+
+        $window.addEventListener('comunicator:joined', arrivedJoined, false);
+        $window.addEventListener('comunicator:toMe', arrivedToMe, false);
+        $window.addEventListener('comunicator:toAll', arrivedToAll, false);
+        $window.addEventListener('comunicator:closed', arrivedClosed, false);
+
+        $rootScope.$on('$destroy', function unregisterEventListener() {
+
+          $window.removeEventListener('comunicator:joined', arrivedJoined, false);
+          $window.removeEventListener('comunicator:toMe', arrivedToMe, false);
+          $window.removeEventListener('comunicator:toAll', arrivedToAll, false);
+          $window.removeEventListener('comunicator:closed', arrivedClosed, false);
+        });
 
         for (; eventsToListenIndex < eventsToListenLength; eventsToListenIndex += 1) {
 
@@ -241,58 +87,8 @@
           unregisterListeners.push($rootScope.$on(anEventToListen, resolveComunicator));
         }
 
-        if (!websocket) {
-
-          complainMessage = 'Mandatory field comunicatorServerURL required';
-          $log.error(complainMessage, websocket);
-          deferred.reject(complainMessage);
-        }
-
-        websocket.send = sendMessage;
-        websocket.onmessage = onWebsocketMessage;
-        websocket.onclose = onWebsocketClose;
-
-        return deferred.promise;
+        return comunicator.promise([domEvent]);
       }]
     };
   });
-}(angular, window));
-
-// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
-// http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
-// requestAnimationFrame polyfill by Erik Möller. fixes from Paul Irish and Tino Zijdel
-// MIT license
-(function rafPolyfill(window) {
-  'use strict';
-
-  var lastTime = 0
-    , vendors = ['ms', 'moz', 'webkit', 'o']
-    , x = 0;
-
-  for (; x < vendors.length && !window.requestAnimationFrame; x += 1) {
-
-    window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
-    window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
-  }
-
-  if (!window.requestAnimationFrame) {
-
-    window.requestAnimationFrame = function rafPolyfill(callback) {
-      var currTime = new Date().getTime()
-        , timeToCall = Math.max(0, 16 - (currTime - lastTime))
-        , id = window.setTimeout(function endTimeOut() {
-            callback(currTime + timeToCall);
-          }, timeToCall);
-
-      lastTime = currTime + timeToCall;
-      return id;
-    };
-  }
-
-  if (!window.cancelAnimationFrame) {
-
-    window.cancelAnimationFrame = function cafPolyfill(id) {
-      window.clearTimeout(id);
-    };
-  }
-}(window));
+}(angular, Comunicator));

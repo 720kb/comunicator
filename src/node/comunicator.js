@@ -1,11 +1,12 @@
 /*global module require process console*/
 (function moduleExport(module, require, process, console) {
+
   'use strict';
   var ws = require('ws')
     , jwt = require('jsonwebtoken')
     , EventEmitter = require('events').EventEmitter
-    , notifierHost = process.env.NOTIFER_HOST || '0.0.0.0'
-    , notifierPort = process.env.NOTIFER_PORT || 9876
+    , notifierHost = process.env.COMUNICATOR_HOST || '0.0.0.0'
+    , notifierPort = process.env.COMUNICATOR_PORT || 9876
     , sockets = {}
     , WebSocketServer = ws.Server
     , wss = new WebSocketServer({'host': notifierHost, 'port': notifierPort}, function notifierWebSocketUpAndRunning() {
