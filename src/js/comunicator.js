@@ -262,4 +262,6 @@
 
     throw 'events must be defined and must be an array';
   };
+
+  window.Comunicator = Comunicator;
 }(window));

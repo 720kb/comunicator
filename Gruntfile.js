@@ -44,6 +44,9 @@
             '<%= confs.dist %>/<%= pkg.name %>-angular.min.js': [
               '<%= confs.angular %>/**/*.js',
               '<%= confs.js %>/**/*.js'
+            ],
+            '<%= confs.dist %>/<%= pkg.name %>-min.js': [
+              '<%= confs.js %>/**/*.js'
             ]
           }
         }
