@@ -1,6 +1,6 @@
 {
   "name": "comunicator",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The 720kb notifier api (atm it uses websockets)",
   "license": "MIT",
   "homepage": "https://github.com/720kb/comunicator",
