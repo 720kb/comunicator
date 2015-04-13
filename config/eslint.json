@@ -99,7 +99,6 @@
     "no-new-object": 2,
     "no-spaced-func": 2,
     "no-space-before-semi": 2,
-    "no-underscore-dangle": 2,
     "no-wrap-func": 2,
     "quotes": [
       2,
@@ -147,6 +146,7 @@
     "no-extra-parens": 1,
     "func-names": 1,
 
+    "no-underscore-dangle": 0,
     "no-ternary": 0,
     "sort-vars": 0
   }
