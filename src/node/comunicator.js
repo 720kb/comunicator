@@ -93,8 +93,11 @@
             parsedMsg.data.whoami &&
             parsedMsg.data.what) {
 
-            jwt.verify(parsedMsg.token, jwtSaltKey, function userVerified() {
+            jwt.verify(parsedMsg.token, jwtSaltKey, function userVerified(err) {
 
+              if (err) {
+                throw err;
+              }
               sendTo(parsedMsg.data.whoami, parsedMsg.data.who, parsedMsg.data.what);
             });
           } else
@@ -104,10 +107,17 @@
             parsedMsg.data.whoami &&
             parsedMsg.data.what) {
 
-            jwt.verify(parsedMsg.token, jwtSaltKey, function userVerified() {
+            jwt.verify(parsedMsg.token, jwtSaltKey, function userVerified(err) {
 
+              if (err) {
+                throw err;
+              }
               broadcast(parsedMsg.data.whoami, parsedMsg.data.what);
             });
+          } else {
+            /*eslint-disable no-console*/
+            console.log('Operation not permitted');
+            /*eslint-disable no-console*/
           }
         }
       , websocketClosed = function closingWebSocket(aWebSocket) {

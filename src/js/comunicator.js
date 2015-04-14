@@ -241,10 +241,10 @@
                 }
 
                 resolve({
-                  'userIsPresent': userIsPresent,
-                  'broadcast': broadcast,
-                  'sendTo': sendTo,
-                  'exit': doClose
+                  'userIsPresent': userIsPresent.bind(this),
+                  'broadcast': broadcast.bind(this),
+                  'sendTo': sendTo.bind(this),
+                  'exit': doClose.bind(this)
                 });
               };
 
@@ -253,7 +253,7 @@
             anEventToListen = events[eventsToListenIndex];
             if (anEventToListen) {
 
-              window.addEventListener(anEventToListen, resolveComunicator, false);
+              window.addEventListener(anEventToListen, resolveComunicator.bind(this), false);
             }
           }
         };
