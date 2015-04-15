@@ -68,7 +68,7 @@
 
           var parsedMsg = JSON.parse(message);
           /*eslint-disable no-console*/
-          console.log('Incoming message:', parsedMsg);
+          console.log('-- comunicator incoming ---', parsedMsg);
           /*eslint-enable no-console*/
 
           /* {'opcode': 'join', 'whoami': <id>, 'token': <jwt-token>} */

@@ -13,6 +13,69 @@
 
         return Math.floor(Math.random() * (this.timeWaitSliceChoices.length + 1));
       };
+      this._onTick = function _onTick(redoFunction, type) {
+
+        var requestId
+          , nextTimeWaitSliceChoice;
+        if (this.chosenTimeWaitValue > 0 &&
+          this.websocket.readyState !== window.WebSocket.OPEN) {
+
+          this.chosenTimeWaitValue -= 1;
+          window.console.debug('Decreasing chosen time wait value...');
+          requestId = window.requestAnimationFrame(_onTick(redoFunction, type));
+          if (type === 'send') {
+
+            this.sendPendingRequests.push(requestId);
+          } else {
+
+            this.joinPendingRequests.push(requestId);
+          }
+        } else {
+
+          nextTimeWaitSliceChoice = this.timeWaitSlice * (Math.pow(2, this.timeWaitSliceChoices.length) - 1);
+          this.timeWaitSliceChoices.push(nextTimeWaitSliceChoice);
+          this.chosenTimeWaitValue = this.giveMeATimeWait();
+          window.console.debug('Chosen time wait value:', this.chosenTimeWaitValue);
+          redoFunction();
+        }
+      };
+      this._doJoin = function _doJoin() {
+
+        var onTickBoundedOnDoJoin = this._onTick.bind(this, this._doJoin.bind(this), 'join')
+          , requestId
+          , joinPendingRequestsIndex = 0
+          , joinPendingRequestsLength
+          , aPendingRequest;
+        if (this.websocket.readyState === window.WebSocket.OPEN) {
+
+          this.websocket.push(JSON.stringify({
+            'opcode': 'join',
+            'whoami': this.whoReallyAmI,
+            'token': this.reallyToken
+          }));
+
+          for (joinPendingRequestsIndex = 0, joinPendingRequestsLength = this.joinPendingRequests.length; joinPendingRequestsIndex < joinPendingRequestsLength; joinPendingRequestsIndex += 1) {
+
+            aPendingRequest = this.joinPendingRequests[joinPendingRequestsIndex];
+            window.cancelAnimationFrame(aPendingRequest);
+          }
+          this.joinPendingRequests = [];
+        } else if (this.websocket.readyState === window.WebSocket.CONNECTING) {
+
+          window.console.info('Trasport to server is not yet ready. Delay joining...');
+          requestId = window.requestAnimationFrame(onTickBoundedOnDoJoin);
+          this.joinPendingRequests.push(requestId);
+        } else {
+
+          window.console.info('Trasport to server is down by now. Delay joining...');
+          this.initComunicator(this.websocket.url);
+          this.websocket.send = this.sendMessage.bind(this);
+          this.websocket.onmessage = this.onWebsocketMessage.bind(this);
+          this.websocket.onclose = this.onWebsocketClose.bind(this);
+          requestId = window.requestAnimationFrame(onTickBoundedOnDoJoin);
+          this.joinPendingRequests.push(requestId);
+        }
+      };
       this.onWebsocketMessage = function onWebSocketMessage(event) {
 
         var parsedMsg = window.JSON.parse(event.data)
@@ -42,12 +105,12 @@
           this.reallyToken) {
 
           window.dispatchEvent(new window.CustomEvent('comunicator:closed'));
-          Comunicator._doJoin.bind(this);
+          this._doJoin();
         }
       };
       this.sendMessage = function send(opcode, data) {
 
-        var onTickBoundedOnSend = Comunicator._onTick.bind(this, this.sendMessage.bind(this, opcode, data), 'send')
+        var onTickBoundedOnSend = this._onTick.bind(this, this.sendMessage.bind(this, opcode, data), 'send')
           , requestId
           , sendPendingRequestsIndex = 0
           , sendPendingRequestsLength
@@ -95,71 +158,6 @@
       this.initComunicator(url);
     };
 
-  Comunicator._onTick = function _onTick(redoFunction, type) {
-
-    var requestId
-      , nextTimeWaitSliceChoice;
-    if (this.chosenTimeWaitValue > 0 &&
-      this.websocket.readyState !== window.WebSocket.OPEN) {
-
-      this.chosenTimeWaitValue -= 1;
-      window.console.debug('Decreasing chosen time wait value...');
-      requestId = window.requestAnimationFrame(_onTick.bind(this, redoFunction, type));
-      if (type === 'send') {
-
-        this.sendPendingRequests.push(requestId);
-      } else {
-
-        this.joinPendingRequests.push(requestId);
-      }
-    } else {
-
-      nextTimeWaitSliceChoice = this.timeWaitSlice * (Math.pow(2, this.timeWaitSliceChoices.length) - 1);
-      this.timeWaitSliceChoices.push(nextTimeWaitSliceChoice);
-      this.chosenTimeWaitValue = this.giveMeATimeWait();
-      window.console.debug('Chosen time wait value:', this.chosenTimeWaitValue);
-      redoFunction();
-    }
-  };
-
-  Comunicator._doJoin = function _doJoin() {
-
-    var onTickBoundedOnDoJoin = Comunicator._onTick.bind(this, _doJoin, 'join')
-      , requestId
-      , joinPendingRequestsIndex = 0
-      , joinPendingRequestsLength
-      , aPendingRequest;
-    if (this.websocket.readyState === window.WebSocket.OPEN) {
-
-      this.websocket.push(JSON.stringify({
-        'opcode': 'join',
-        'whoami': this.whoReallyAmI,
-        'token': this.reallyToken
-      }));
-
-      for (joinPendingRequestsIndex = 0, joinPendingRequestsLength = this.joinPendingRequests.length; joinPendingRequestsIndex < joinPendingRequestsLength; joinPendingRequestsIndex += 1) {
-
-        aPendingRequest = this.joinPendingRequests[joinPendingRequestsIndex];
-        window.cancelAnimationFrame(aPendingRequest);
-      }
-      this.joinPendingRequests = [];
-    } else if (this.websocket.readyState === window.WebSocket.CONNECTING) {
-
-      window.console.info('Trasport to server is not yet ready. Delay joining...');
-      requestId = window.requestAnimationFrame(onTickBoundedOnDoJoin);
-      this.joinPendingRequests.push(requestId);
-    } else {
-
-      window.console.info('Trasport to server is down by now. Delay joining...');
-      this.initComunicator(this.websocket.url);
-      this.websocket.send = this.sendMessage.bind(this);
-      this.websocket.onmessage = this.onWebsocketMessage.bind(this);
-      this.websocket.onclose = this.onWebsocketClose.bind(this);
-      requestId = window.requestAnimationFrame(onTickBoundedOnDoJoin);
-      this.joinPendingRequests.push(requestId);
-    }
-  };
-
   Comunicator.prototype.promise = function promise(events) {
 
     if (!this.websocket) {
@@ -182,7 +180,7 @@
                 if (this.whoReallyAmI &&
                   this.reallyToken) {
 
-                  Comunicator._doJoin.bind(this);
+                  this._doJoin();
                 } else {
 
                   throw 'User identification datas missing.';
