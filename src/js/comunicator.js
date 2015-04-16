@@ -4,16 +4,7 @@
 
   var Comunicator = function Comunicator(url) {
 
-      this.timeWaitSlice = 64;
-      this.timeWaitSliceChoices = [0];
-      this.chosenTimeWaitValue = 0;
-      this.sendPendingRequests = [];
-      this.joinPendingRequests = [];
-      this.giveMeATimeWait = function giveMeATimeWait() {
-
-        return Math.floor(Math.random() * (this.timeWaitSliceChoices.length + 1));
-      };
-      this._onTick = function _onTick(redoFunction, type) {
+      var _onTick = function _onTick(redoFunction, type) {
 
         var requestId
           , nextTimeWaitSliceChoice;
@@ -21,8 +12,8 @@
           this.websocket.readyState !== window.WebSocket.OPEN) {
 
           this.chosenTimeWaitValue -= 1;
-          window.console.debug('Decreasing chosen time wait value...');
-          requestId = window.requestAnimationFrame(_onTick(redoFunction, type));
+          //window.console.debug('Decreasing chosen time wait value...');
+          requestId = window.requestAnimationFrame(_onTick.bind(this, redoFunction, type));
           if (type === 'send') {
 
             this.sendPendingRequests.push(requestId);
@@ -35,13 +26,23 @@
           nextTimeWaitSliceChoice = this.timeWaitSlice * (Math.pow(2, this.timeWaitSliceChoices.length) - 1);
           this.timeWaitSliceChoices.push(nextTimeWaitSliceChoice);
           this.chosenTimeWaitValue = this.giveMeATimeWait();
-          window.console.debug('Chosen time wait value:', this.chosenTimeWaitValue);
+          //window.console.debug('Chosen time wait value:', this.chosenTimeWaitValue);
           redoFunction();
         }
       };
+
+      this.timeWaitSlice = 64;
+      this.timeWaitSliceChoices = [0];
+      this.chosenTimeWaitValue = 0;
+      this.sendPendingRequests = [];
+      this.joinPendingRequests = [];
+      this.giveMeATimeWait = function giveMeATimeWait() {
+
+        return Math.floor(Math.random() * (this.timeWaitSliceChoices.length + 1));
+      };
       this._doJoin = function _doJoin() {
 
-        var onTickBoundedOnDoJoin = this._onTick.bind(this, this._doJoin.bind(this), 'join')
+        var onTickBoundedOnDoJoin = _onTick.bind(this, this._doJoin.bind(this), 'join')
           , requestId
           , joinPendingRequestsIndex = 0
           , joinPendingRequestsLength
@@ -62,12 +63,12 @@
           this.joinPendingRequests = [];
         } else if (this.websocket.readyState === window.WebSocket.CONNECTING) {
 
-          window.console.info('Trasport to server is not yet ready. Delay joining...');
+          //window.console.info('Trasport to server is not yet ready. Delay joining...');
           requestId = window.requestAnimationFrame(onTickBoundedOnDoJoin);
           this.joinPendingRequests.push(requestId);
         } else {
 
-          window.console.info('Trasport to server is down by now. Delay joining...');
+          //window.console.info('Trasport to server is down by now. Delay joining...');
           this.initComunicator(this.websocket.url);
           this.websocket.send = this.sendMessage.bind(this);
           this.websocket.onmessage = this.onWebsocketMessage.bind(this);
@@ -85,10 +86,10 @@
           eventToDispatch = new window.CustomEvent('comunicator:joined');
         } else if (parsedMsg.opcode === 'sent') {
 
-          eventToDispatch = new window.CustomEvent('comunicator:toMe', {'detail': parsedMsg});
+          eventToDispatch = new window.CustomEvent('comunicator:to-me', {'detail': parsedMsg});
         } else if (parsedMsg.opcode === 'broadcasted') {
 
-          eventToDispatch = new window.CustomEvent('comunicator:toAll', {'detail': parsedMsg});
+          eventToDispatch = new window.CustomEvent('comunicator:to-all', {'detail': parsedMsg});
         }
 
         if (eventToDispatch) {
@@ -105,12 +106,16 @@
           this.reallyToken) {
 
           window.dispatchEvent(new window.CustomEvent('comunicator:closed'));
-          this._doJoin();
+          if (this.websocket.readyState !== window.WebSocket.OPEN ||
+            this.websocket.readyState !== window.WebSocket.CONNECTING) {
+
+            this._doJoin();
+          }
         }
       };
       this.sendMessage = function send(opcode, data) {
 
-        var onTickBoundedOnSend = this._onTick.bind(this, this.sendMessage.bind(this, opcode, data), 'send')
+        var onTickBoundedOnSend = _onTick.bind(this, this.sendMessage.bind(this, opcode, data), 'send')
           , requestId
           , sendPendingRequestsIndex = 0
           , sendPendingRequestsLength
@@ -131,7 +136,7 @@
           this.sendPendingRequests = [];
         } else {
 
-          window.console.debug('Trasport to server is not ready. Delay sending...');
+          //window.console.debug('Trasport to server is not ready. Delay sending...');
           requestId = window.requestAnimationFrame(onTickBoundedOnSend);
           this.sendPendingRequests.push(requestId);
         }

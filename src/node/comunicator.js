@@ -83,7 +83,7 @@
                 'token': parsedMsg.token
               };
               aWebSocket.send(JSON.stringify(toSend));
-              eventEmitter.emit('notifier:userJoin', parsedMsg.whoami);
+              eventEmitter.emit('notifier:user-joined', parsedMsg.whoami);
             });
           } else
           /* {'opcode': 'sendTo', 'token': <jwt-token>, 'data': {'whoami': <id>, 'who': <id>, 'what': payload}} */
@@ -131,7 +131,7 @@
             aSocketKey = socketsKeys[socketIndex];
             if (aWebSocket === sockets[aSocketKey]) {
 
-              eventEmitter.emit('notifier:userLeave', aSocketKey);
+              eventEmitter.emit('notifier:user-leave', aSocketKey);
               delete sockets[aSocketKey];
             }
           }

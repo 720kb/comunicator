@@ -21,6 +21,13 @@
     "notify",
     "messaging"
   ],
+  "scripts": {
+    "js-min": "./tasks/banner | xargs -0 -I banner uglifyjs src/js/raf.js src/js/comunicator.js --preamble banner -c -m --screw-ie8 -p relative --source-map dist/comunicator.min.js.map -o dist/comunicator.min.js",
+    "ng-min": "./tasks/banner | xargs -0 -I banner uglifyjs src/js/raf.js src/js/comunicator.js src/angular/comunicator.js --preamble banner -c -m --screw-ie8 -p relative --source-map dist/comunicator-angular.min.js.map -o dist/comunicator-angular.min.js",
+    "min": "npm run-script js-min && npm run-script ng-min",
+    "lint": "eslint -c config/eslint.json src",
+    "test": "node spec/start-node.js"
+  },
   "bugs": {
     "url": "http://github.com/720kb/comunicator/issues"
   },
@@ -31,12 +38,11 @@
   "main": "./src/node/comunicator.js",
   "dependencies": {
     "ws": "^0.7.1",
-    "jsonwebtoken": "^4.2.2"
+    "jsonwebtoken": "^5.0.0"
   },
   "devDependencies": {
-    "grunt": "^0.4.5",
-    "grunt-contrib-uglify": "^0.9.1",
-    "grunt-eslint": "^10.0.0",
-    "hapi": "^8.4.0"
+    "eslint": "^0.19.0",
+    "hapi": "^8.4.0",
+    "uglify-js": "^2.4.20"
   }
 }

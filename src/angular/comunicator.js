@@ -28,17 +28,17 @@
 
               $rootScope.$apply(function doApply(scope) {
 
-                scope.$emit('comunicator:toMe', event.detail);
+                scope.$emit('comunicator:to-me', event.detail);
               });
-              $log.debug('comunicator:toMe dispatched');
+              $log.debug('comunicator:to-me dispatched');
             }
           , arrivedToAll = function arrivedToAll(event) {
 
               $rootScope.$apply(function doApply(scope) {
 
-                scope.$emit('comunicator:toAll', event.detail);
+                scope.$emit('comunicator:to-all', event.detail);
               });
-              $log.debug('comunicator:toAll dispatched');
+              $log.debug('comunicator:to-all dispatched');
             }
           , arrivedClosed = function arrivedClosed() {
 
@@ -69,15 +69,15 @@
             };
 
         $window.addEventListener('comunicator:joined', arrivedJoined, false);
-        $window.addEventListener('comunicator:toMe', arrivedToMe, false);
-        $window.addEventListener('comunicator:toAll', arrivedToAll, false);
+        $window.addEventListener('comunicator:to-me', arrivedToMe, false);
+        $window.addEventListener('comunicator:to-all', arrivedToAll, false);
         $window.addEventListener('comunicator:closed', arrivedClosed, false);
 
         $rootScope.$on('$destroy', function unregisterEventListener() {
 
           $window.removeEventListener('comunicator:joined', arrivedJoined, false);
-          $window.removeEventListener('comunicator:toMe', arrivedToMe, false);
-          $window.removeEventListener('comunicator:toAll', arrivedToAll, false);
+          $window.removeEventListener('comunicator:to-me', arrivedToMe, false);
+          $window.removeEventListener('comunicator:to-all', arrivedToAll, false);
           $window.removeEventListener('comunicator:closed', arrivedClosed, false);
         });
 
