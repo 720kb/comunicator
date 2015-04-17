@@ -5,26 +5,34 @@
   var ws = require('ws')
     , jwt = require('jsonwebtoken')
     , EventEmitter = require('events').EventEmitter
-    , notifierHost = process.env.COMUNICATOR_HOST || '0.0.0.0'
-    , notifierPort = process.env.COMUNICATOR_PORT || 9876
+    , comunicatorHost = process.env.COMUNICATOR_HOST || '0.0.0.0'
+    , comunicatorPort = process.env.COMUNICATOR_PORT || 9876
     , sockets = {}
     , WebSocketServer = ws.Server
-    , wss = new WebSocketServer({'host': notifierHost, 'port': notifierPort}, function notifierWebSocketUpAndRunning() {
+    , wss = new WebSocketServer({'host': comunicatorHost, 'port': comunicatorPort}, function comunicatorWebSocketUpAndRunning() {
 
         /*eslint-disable no-console*/
-        console.info('Server listen websocket connections on host - port:', notifierHost, '-', notifierPort);
+        console.info('Server listen websocket connections on host - port:', comunicatorHost, '-', comunicatorPort);
         /*eslint-enable no-console*/
       });
 
   module.exports = function toExport(jwtSaltKey) {
+
     var eventEmitter = new EventEmitter()
       , broadcast = function broadcast(whoami, what) {
+
+          if (!whoami &&
+            !what) {
+
+            throw 'Mandatory params [whoami] - [what]: ' + whoami + ' - ' + what;
+          }
 
           var toSend = {
               'opcode': 'broadcasted',
               'whoami': whoami,
               'what': what
             }
+            , whoamiWebSocket = sockets[whoami]
             , socketsKeys = Object.keys(sockets)
             , socketIndex
             , aSocketKey
@@ -34,13 +42,21 @@
 
             aSocketKey = socketsKeys[socketIndex];
             aWebSocket = sockets[aSocketKey];
-            if (aWebSocket.readyState === ws.OPEN) {
+            if (aWebSocket.readyState === ws.OPEN &&
+              whoamiWebSocket !== aWebSocket) {
 
               aWebSocket.send(JSON.stringify(toSend));
             }
           }
         }
       , sendTo = function sendTo(whoami, who, what) {
+
+          if (!whoami &&
+            !who &&
+            !what) {
+
+            throw 'Mandatory params [whoami] - [who] - [what]: ' + whoami + ' - ' + who + ' - ' + what;
+          }
 
           var toSend = {
               'opcode': 'sent',
@@ -55,27 +71,32 @@
             aWebSocket.send(JSON.stringify(toSend));
           } else {
 
-            /*eslint-disable no-console*/
-            console.error('No user', who, 'is connected to notifier');
-            /*eslint-enable no-console*/
+            throw 'No user' + who + 'is connected to comunicator';
           }
         }
       , isUserPresent = function isUserPresent(who) {
 
+          if (!who) {
+
+            return false;
+          }
           return sockets[who] !== undefined;
         }
       , manageIncomingMessage = function manageIncomingMessage(message, aWebSocket) {
 
           var parsedMsg = JSON.parse(message);
-          /*eslint-disable no-console*/
-          console.log('-- comunicator incoming ---', parsedMsg);
-          /*eslint-enable no-console*/
-
           /* {'opcode': 'join', 'whoami': <id>, 'token': <jwt-token>} */
           if (parsedMsg.opcode === 'join') {
 
-            jwt.verify(parsedMsg.token, jwtSaltKey, function userVerified() {
+            /*eslint-disable no-console*/
+            console.log('-- incoming ---', {'opcode': 'join', 'whoami': parsedMsg.whoami});
+            /*eslint-enable no-console*/
+            jwt.verify(parsedMsg.token, jwtSaltKey, function userVerified(err) {
 
+              if (err) {
+
+                throw err;
+              }
               sockets[parsedMsg.whoami] = aWebSocket;
               var toSend = {
                 'opcode': 'joined',
@@ -83,7 +104,7 @@
                 'token': parsedMsg.token
               };
               aWebSocket.send(JSON.stringify(toSend));
-              eventEmitter.emit('notifier:user-joined', parsedMsg.whoami);
+              eventEmitter.emit('comunicator:user-joined', parsedMsg.whoami);
             });
           } else
           /* {'opcode': 'sendTo', 'token': <jwt-token>, 'data': {'whoami': <id>, 'who': <id>, 'what': payload}} */
@@ -93,9 +114,13 @@
             parsedMsg.data.whoami &&
             parsedMsg.data.what) {
 
+            /*eslint-disable no-console*/
+            console.log('-- incoming ---', {'opcode': 'sendTo', 'data': {'whoami': parsedMsg.data.whoami, 'who': parsedMsg.data.who, 'what': parsedMsg.data.what}});
+            /*eslint-enable no-console*/
             jwt.verify(parsedMsg.token, jwtSaltKey, function userVerified(err) {
 
               if (err) {
+
                 throw err;
               }
               sendTo(parsedMsg.data.whoami, parsedMsg.data.who, parsedMsg.data.what);
@@ -107,17 +132,20 @@
             parsedMsg.data.whoami &&
             parsedMsg.data.what) {
 
+            /*eslint-disable no-console*/
+            console.log('-- incoming ---', {'opcode': 'broadcast', 'data': {'whoami': parsedMsg.data.whoami, 'who': '*', 'what': parsedMsg.data.what}});
+            /*eslint-enable no-console*/
             jwt.verify(parsedMsg.token, jwtSaltKey, function userVerified(err) {
 
               if (err) {
+
                 throw err;
               }
               broadcast(parsedMsg.data.whoami, parsedMsg.data.what);
             });
           } else {
-            /*eslint-disable no-console*/
-            console.log('Operation not permitted');
-            /*eslint-disable no-console*/
+
+            throw 'Operation not permitted';
           }
         }
       , websocketClosed = function closingWebSocket(aWebSocket) {
@@ -131,7 +159,7 @@
             aSocketKey = socketsKeys[socketIndex];
             if (aWebSocket === sockets[aSocketKey]) {
 
-              eventEmitter.emit('notifier:user-leave', aSocketKey);
+              eventEmitter.emit('comunicator:user-leave', aSocketKey);
               delete sockets[aSocketKey];
             }
           }

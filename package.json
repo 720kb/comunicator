@@ -37,8 +37,8 @@
   },
   "main": "./src/node/comunicator.js",
   "dependencies": {
-    "ws": "^0.7.1",
-    "jsonwebtoken": "^5.0.0"
+    "jsonwebtoken": "^5.0.0",
+    "ws": "^0.7.1"
   },
   "devDependencies": {
     "eslint": "^0.19.0",

@@ -31,7 +31,7 @@
         }
       };
 
-      this.timeWaitSlice = 64;
+      this.timeWaitSlice = 300;
       this.timeWaitSliceChoices = [0];
       this.chosenTimeWaitValue = 0;
       this.sendPendingRequests = [];
