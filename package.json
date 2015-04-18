@@ -26,7 +26,7 @@
     "ng-min": "./tasks/banner | xargs -0 -I banner uglifyjs src/js/comunicator.js src/angular/comunicator.js --preamble banner -c -m --screw-ie8 -p relative --source-map dist/comunicator-angular.min.js.map -o dist/comunicator-angular.min.js",
     "min": "npm run-script js-min && npm run-script ng-min",
     "lint": "eslint -c config/eslint.json src",
-    "prepublish": "npm run-script lint && npm run-script min && npm version patch",
+    "prepublish": "npm run-script lint && npm run-script min && git commit -am 'new minified version' && npm version patch",
     "test": "node spec/start-node.js"
   },
   "bugs": {
