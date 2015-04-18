@@ -15,6 +15,9 @@
   .controller('TestController', ['$rootScope', '$scope', '$http', '$log', 'Comunicator',
     function TestController($rootScope, $scope, $http, $log, Comunicator) {
 
+      var OnComunicatorToMe
+        , OnComunicatorToAll;
+
       $http.get('/token')
         .success(function onSuccess(data) {
 
@@ -26,7 +29,17 @@
           $log.debug(data);
         });
 
+      $scope.resetFlags = function resetFlags() {
+
+        $scope.toMe = undefined;
+        $scope.toAll = undefined;
+      };
+
       $scope.userIsPresent = function userIsPresent() {
+
+        $scope.running = true;
+
+        $scope.resetFlags();
 
         Comunicator.then(function onComunicator(comunicator) {
 
@@ -36,6 +49,9 @@
 
       $scope.broadcast = function broadcast() {
 
+        $scope.running = true;
+        $scope.resetFlags();
+
         Comunicator.then(function onComunicator(comunicator) {
 
           comunicator.broadcast($scope.what);
@@ -44,10 +60,31 @@
 
       $scope.sendTo = function sendTo() {
 
+        $scope.running = true;
+        $scope.resetFlags();
+
         Comunicator.then(function onComunicator(comunicator) {
 
           comunicator.sendTo($scope.userID, $scope.what);
         });
       };
+
+      OnComunicatorToMe = $rootScope.$on('comunicator:to-me', function (eventInfo, data) {
+
+        $scope.running = false;
+        $scope.toMe = data;
+      });
+
+      OnComunicatorToAll = $rootScope.$on('comunicator:to-all', function (eventInfo, data) {
+
+        $scope.running = false;
+        $scope.toAll = data;
+      });
+
+      $scope.$on('$destroy', function () {
+
+        OnComunicatorToMe();
+        OnComunicatorToAll();
+      });
   }]);
 }(angular, Comunicator));
