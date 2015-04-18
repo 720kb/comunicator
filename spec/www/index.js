@@ -41,5 +41,13 @@
           comunicator.broadcast($scope.what);
         });
       };
+
+      $scope.sendTo = function sendTo() {
+
+        Comunicator.then(function onComunicator(comunicator) {
+
+          comunicator.sendTo($scope.userID, $scope.what);
+        });
+      };
   }]);
 }(angular, Comunicator));

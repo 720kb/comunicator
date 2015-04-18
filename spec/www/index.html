@@ -18,12 +18,18 @@
       <div class="row blank-text">
         <input type="text" ng-model="whoami" placeholder="Whoami"/>
         <input type="text" ng-model="what" placeholder="What"/>
+        <input type="text" ng-model="userID" placeholder="User ID"/>
       </div>
     </p>
     <div class="row center-align">
-      <button class="btn col s4 blue waves-effect waves-light" ng-click="userIsPresent()">USER IS PRESENT</button>
-      <button class="btn indigo col s4 waves-effect waves-light" ng-click="broadcast()">BROADCAST</button>
-      <button class="btn pink col s4 waves-effect waves-light" ng-click="sendTo()">SEND TO</button>
+      <button class="btn col s4 blue waves-effect waves-light" ng-click="userIsPresent()">
+        USER IS PRESENT
+      </button>
+      <button class="btn indigo col s4 waves-effect waves-light" ng-click="broadcast()">BROADCAST
+      </button>
+      <button class="btn pink col s4 waves-effect waves-light" ng-click="sendTo()">
+        SEND TO
+      </button>
     </div>
   </div>
   <script type="text/javascript" src="comunicator.js"></script>
