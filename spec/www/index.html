@@ -9,52 +9,47 @@
     <div class="nav-wrapper black-text">
       <a href="#" class="brand-logo black-text">
         &nbsp;
-        <small>Comunicator <span class="grey-text">Test UI</span></small>
+        <small>Comunicator <span class="grey-text">Test</span></small>
       </a>
     </div>
   </nav>
   <div class="container" ng-controller="TestController">
     <p>
       <div class="row blank-text">
-        <input type="text" ng-model="whoami" placeholder="Whoami"/>
+        <input type="text" ng-model="token" placeholder="Whoami"/>
         <input type="text" ng-model="what" placeholder="What"/>
         <input type="text" ng-model="userID" placeholder="User ID"/>
       </div>
     </p>
     <div class="row center-align">
-      <button class="btn col s4 blue waves-effect waves-light" ng-click="userIsPresent()">
-        USER IS PRESENT
-      </button>
-      <button class="btn indigo col s4 waves-effect waves-light" ng-click="broadcast()">BROADCAST
-      </button>
-      <button class="btn pink col s4 waves-effect waves-light" ng-click="sendTo()">
-        SEND TO
-      </button>
-    </div>
-    <div ng-show="running" class="card blue-grey darken-1">
-      <div class="card-content white-text">
-        <div class="preloader-wrapper small active">
-          <div class="spinner-layer spinner-blue-only">
-            <div class="circle-clipper left">
-              <div class="circle"></div>
-            </div><div class="gap-patch">
-            <div class="circle"></div>
-          </div><div class="circle-clipper right">
-          <div class="circle"></div>
-        </div>
+      <div class="col s4">
+        <button class="btn col m12 blue waves-effect waves-light" ng-click="userIsPresent()">
+          USER IS PRESENT
+        </button>
+      </div>
+      <div class="col s4">
+        <button class="btn col m12 indigo waves-effect waves-light" ng-click="broadcast()">BROADCAST
+        </button>
+      </div>
+      <div class="col s4">
+        <button class="btn col m12 pink  waves-effect waves-light" ng-click="sendTo()">
+          SEND TO
+        </button>
       </div>
     </div>
-    <span ng-show="!running && toMe || toAll" class="card-title">
-     Answer Received:
-   </span>
-   <p ng-show="running">You should se an answer in here in a while...</p>
-   <p ng-show="toMe || toAll"> {{toMe || toAll}}</p>
- </div>
-</div>
-</div>
-<script type="text/javascript" src="comunicator.js"></script>
-<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.0-rc.0/angular.min.js"></script>
-<script type="text/javascript" src="comunicator-ng.js"></script>
-<script type="text/javascript" src="index.js"></script>
+
+    <div ng-show="message" class="card white">
+      <div class="card-content">
+        <h6 class="center-align" ng-show="message">
+          {{message}}
+        </h6>
+        <p class="col m12 center-align blue-text">{{eventData}}</p>
+      </div>
+    </div>
+  </div>
+  <script type="text/javascript" src="comunicator.js"></script>
+  <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.0-rc.0/angular.min.js"></script>
+  <script type="text/javascript" src="comunicator-ng.js"></script>
+  <script type="text/javascript" src="index.js"></script>
 </body>
 </html>

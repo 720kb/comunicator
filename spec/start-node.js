@@ -16,10 +16,12 @@
     'path': '/token',
     'handler': function handler(request, reply) {
 
-      var token = jwt.sign({
-        'user': parseInt(Math.random() * 100000000, 10)
+      var userID = parseInt(Math.random() * 100000000, 10)
+        , token = jwt.sign({
+        'user': userID
       }, salt);
-      reply(token);
+
+      reply({'token': token, 'userID': userID});
     }
   });
 

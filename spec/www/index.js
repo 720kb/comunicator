@@ -15,13 +15,16 @@
   .controller('TestController', ['$rootScope', '$scope', '$http', '$log', 'Comunicator',
     function TestController($rootScope, $scope, $http, $log, Comunicator) {
 
-      var onComunicatorToMe
-        , onComunicatorToAll;
+      var OnComunicatorJoin
+        , OnComunicatorToMe
+        , OnComunicatorToAll;
 
       $http.get('/token')
         .success(function onSuccess(data) {
 
-          $scope.token = data;
+          $scope.token = data.token;
+          $scope.userID = data.userID;
+
           $rootScope.$emit('$routeChangeSuccess');
         })
         .error(function onError(data) {
@@ -31,8 +34,8 @@
 
       $scope.resetFlags = function resetFlags() {
 
-        $scope.toMe = undefined;
-        $scope.toAll = undefined;
+        $scope.message = undefined;
+        $scope.eventData = undefined;
       };
 
       $scope.userIsPresent = function userIsPresent() {
@@ -43,7 +46,7 @@
 
         Comunicator.then(function onComunicator(comunicator) {
 
-          comunicator.userIsPresent($scope.whoami, $scope.token);
+          comunicator.userIsPresent($scope.userID, $scope.token);
         });
       };
 
@@ -54,7 +57,7 @@
 
         Comunicator.then(function onComunicator(comunicator) {
 
-          comunicator.broadcast($scope.what);
+          comunicator.broadcast({'message': $scope.what});
         });
       };
 
@@ -65,26 +68,35 @@
 
         Comunicator.then(function onComunicator(comunicator) {
 
-          comunicator.sendTo($scope.userID, $scope.what);
+          comunicator.sendTo($scope.userID, {'message': $scope.what});
         });
       };
 
-      onComunicatorToMe = $rootScope.$on('comunicator:to-me', function (eventInfo, data) {
+      OnComunicatorJoin = $rootScope.$on('comunicator:joined', function (eventInfo, data) {
 
         $scope.running = false;
-        $scope.toMe = data;
+        $scope.eventData = data;
+        $scope.message = 'Connected to comunicator';
+      });
+      OnComunicatorToMe = $rootScope.$on('comunicator:to-me', function (eventInfo, data) {
+
+        $scope.running = false;
+        $scope.eventData = data;
+        $scope.message = 'A message from comunicator, for you.';
       });
 
-      onComunicatorToAll = $rootScope.$on('comunicator:to-all', function (eventInfo, data) {
+      OnComunicatorToAll = $rootScope.$on('comunicator:to-all', function (eventInfo, data) {
 
         $scope.running = false;
-        $scope.toAll = data;
+        $scope.eventData = data;
+        $scope.message = 'A message from comunicator, for all the people.';
       });
 
       $scope.$on('$destroy', function () {
 
-        onComunicatorToMe();
-        onComunicatorToAll();
+        OnComunicatorToMe();
+        OnComunicatorJoin();
+        OnComunicatorToAll();
       });
   }]);
 }(angular, Comunicator));
