@@ -15,8 +15,8 @@
   .controller('TestController', ['$rootScope', '$scope', '$http', '$log', 'Comunicator',
     function TestController($rootScope, $scope, $http, $log, Comunicator) {
 
-      var OnComunicatorToMe
-        , OnComunicatorToAll;
+      var onComunicatorToMe
+        , onComunicatorToAll;
 
       $http.get('/token')
         .success(function onSuccess(data) {
@@ -69,13 +69,13 @@
         });
       };
 
-      OnComunicatorToMe = $rootScope.$on('comunicator:to-me', function (eventInfo, data) {
+      onComunicatorToMe = $rootScope.$on('comunicator:to-me', function (eventInfo, data) {
 
         $scope.running = false;
         $scope.toMe = data;
       });
 
-      OnComunicatorToAll = $rootScope.$on('comunicator:to-all', function (eventInfo, data) {
+      onComunicatorToAll = $rootScope.$on('comunicator:to-all', function (eventInfo, data) {
 
         $scope.running = false;
         $scope.toAll = data;
@@ -83,8 +83,8 @@
 
       $scope.$on('$destroy', function () {
 
-        OnComunicatorToMe();
-        OnComunicatorToAll();
+        onComunicatorToMe();
+        onComunicatorToAll();
       });
   }]);
 }(angular, Comunicator));
