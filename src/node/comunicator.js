@@ -15,45 +15,7 @@
         console.info('Server listen websocket connections on host - port:', comunicatorHost, '-', comunicatorPort);
         /*eslint-enable no-console*/
       })
-    , timeWaitSlice = 9000
-    , timeWaitSliceChoices = [0]
-    , chosenTimeWaitValue = {}
-    , sendPendingRequests = {}
-    , giveMeATimeWait = function giveMeATimeWait() {
-
-        return Math.floor(Math.random() * (timeWaitSliceChoices.length + 1));
-      }
-    , _onTick = function _onTick(redoFunction, who) {
-
-        if (!who) {
-
-          /*eslint-disable no-console*/
-          console.error('Mandatory [who] field missing');
-          /*eslint-enable no-console*/
-        } else {
-
-          var requestId
-            , nextTimeWaitSliceChoice;
-          if (chosenTimeWaitValue[who] > 0) {
-
-            chosenTimeWaitValue[who] -= 1;
-            //window.console.debug('Decreasing chosen time wait value...');
-            requestId = setTimeout(_onTick.bind(undefined, redoFunction, who), 0);
-            if (!sendPendingRequests[who]) {
-
-              sendPendingRequests[who] = [];
-            }
-            sendPendingRequests[who].push(requestId);
-          } else {
-
-            nextTimeWaitSliceChoice = timeWaitSlice * (Math.pow(2, timeWaitSliceChoices.length) - 1);
-            timeWaitSliceChoices.push(nextTimeWaitSliceChoice);
-            chosenTimeWaitValue[who] = giveMeATimeWait();
-            //window.console.debug('Chosen time wait value:', this.chosenTimeWaitValue);
-            redoFunction();
-          }
-        }
-      };
+    , sendPendingRequests = {};
 
   module.exports = function toExport(jwtSaltKey) {
 
@@ -108,43 +70,21 @@
                 'who': who,
                 'what': what
               }
-              , aWebSocket = sockets[who]
-              , requestId
-              , onTickBoundedOnSend
-              , sendPendingRequestsIndex = 0
-              , sendPendingRequestsLegth
-              , aSendingPendingRequest;
+              , aWebSocket = sockets[who];
             if (!!aWebSocket &&
               aWebSocket.readyState === ws.OPEN) {
 
               aWebSocket.send(JSON.stringify(toSend));
-              if (!sendPendingRequests[who]) {
-
-                sendPendingRequests[who] = [];
-              }
-              sendPendingRequestsLegth = sendPendingRequests[who].length;
-              for (sendPendingRequestsIndex = 0; sendPendingRequestsIndex < sendPendingRequestsLegth; sendPendingRequestsIndex += 1) {
-
-                aSendingPendingRequest = sendPendingRequests[who][sendPendingRequestsIndex];
-                if (aSendingPendingRequest) {
-
-                  clearTimeout(aSendingPendingRequest);
-                } else {
-
-                  /*eslint-disable no-console*/
-                  console.warn('A pending send timeout is invalid');
-                  /*eslint-enable no-console*/
-                }
-              }
             } else {
 
-              onTickBoundedOnSend = _onTick.bind(undefined, sendTo.bind(undefined, whoami, who, what), who);
-              requestId = setTimeout(onTickBoundedOnSend, 0);
               if (!sendPendingRequests[who]) {
 
                 sendPendingRequests[who] = [];
               }
-              sendPendingRequests[who].push(requestId);
+              sendPendingRequests[who].push(sendTo.bind(undefined, whoami, who, what));
+              /*eslint-disable no-console*/
+              console.error('User ' + who + ' isn'\' here at the moment...');
+              /*eslint-enable no-console*/
             }
           }
         }
@@ -176,12 +116,37 @@
 
                 sockets[parsedMsg.whoami] = aWebSocket;
                 var toSend = {
-                  'opcode': 'joined',
-                  'whoami': parsedMsg.whoami,
-                  'token': parsedMsg.token
-                };
+                    'opcode': 'joined',
+                    'whoami': parsedMsg.whoami,
+                    'token': parsedMsg.token
+                  }
+                  , sendPendingRequestsIndex = 0
+                  , sendPendingRequestsLength
+                  , aSendPendingRequest;
                 aWebSocket.send(JSON.stringify(toSend));
                 eventEmitter.emit('comunicator:user-joined', parsedMsg.whoami);
+                if (sendPendingRequests[parsedMsg.whoami]) {
+
+                  sendPendingRequestsLength = sendPendingRequests[parsedMsg.whoami].length;
+                  for (sendPendingRequestsIndex = 0; sendPendingRequestsIndex < sendPendingRequestsLength; sendPendingRequestsIndex += 1) {
+
+                    aSendPendingRequest = sendPendingRequests[parsedMsg.whoami][sendPendingRequestsIndex];
+                    if (aSendPendingRequest) {
+
+                      aSendPendingRequest();
+                    } else {
+
+                      /*eslint-disable no-console*/
+                      console.warn('A sending pending request is invalid.');
+                      /*eslint-enable no-console*/
+                    }
+                  }
+                  sendPendingRequests[parsedMsg.whoami] = [];
+                  delete sendPendingRequests[parsedMsg.whoami]
+                } else {
+
+                  console.info('No pending requests for ' + parsedMsg.whoami + ' user.');
+                }
               }
             });
           } else
