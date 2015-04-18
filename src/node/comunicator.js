@@ -1,5 +1,5 @@
-/*global module require process console, setTimeout clearTimeout*/
-(function moduleExport(module, require, process, console, setTimeout, clearTimeout) {
+/*global module require process console*/
+(function moduleExport(module, require, process, console) {
 
   'use strict';
   var ws = require('ws')
@@ -26,7 +26,7 @@
             !what) {
 
             /*eslint-disable no-console*/
-            console.error('Mandatory params [whoami] - [what]: ' + whoami + ' - ' + what);
+            console.error('Mandatory params [whoami] - [what]:', whoami, '-', what);
             /*eslint-enable no-console*/
           } else {
 
@@ -60,7 +60,7 @@
             !what) {
 
             /*eslint-disable no-console*/
-            console.error('Mandatory params [whoami] - [who] - [what]: ' + whoami + ' - ' + who + ' - ' + what);
+            console.error('Mandatory params [whoami] - [who] - [what]:', whoami, '-', who, '-', what);
             /*eslint-enable no-console*/
           } else {
 
@@ -83,7 +83,7 @@
               }
               sendPendingRequests[who].push(sendTo.bind(undefined, whoami, who, what));
               /*eslint-disable no-console*/
-              console.error('User ' + who + ' isn'\' here at the moment...');
+              console.error('User', who, ' isn\'t here at the moment...');
               /*eslint-enable no-console*/
             }
           }
@@ -142,10 +142,12 @@
                     }
                   }
                   sendPendingRequests[parsedMsg.whoami] = [];
-                  delete sendPendingRequests[parsedMsg.whoami]
+                  delete sendPendingRequests[parsedMsg.whoami];
                 } else {
 
-                  console.info('No pending requests for ' + parsedMsg.whoami + ' user.');
+                  /*eslint-disable no-console*/
+                  console.info('No pending requests for', parsedMsg.whoami, 'user.');
+                  /*eslint-enable no-console*/
                 }
               }
             });
@@ -238,4 +240,4 @@
 
     return eventEmitter;
   };
-}(module, require, process, console, setTimeout, clearTimeout));
+}(module, require, process, console));
