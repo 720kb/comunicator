@@ -1,20 +1,34 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>test</title>
-  </head>
-  <body ng-app="720kb.test">
-    <div ng-controller="TestController">
-
-      <input type="text" ng-model="whoami"/>
-      <input type="text" ng-model="what"/>
-
-      <button ng-click="userIsPresent()">user is present</button>
-      <button ng-click="broadcast()">broadcast</button>
+<head>
+  <title>Test</title>
+  <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/materialize/0.96.1/css/materialize.min.css">
+</head>
+<body class="grey lighten-3" ng-app="720kb.test">
+  <nav class="white">
+    <div class="nav-wrapper black-text">
+      <a href="#" class="brand-logo black-text">
+        &nbsp;
+        <small>Comunicator <span class="grey-text">Test UI</span></small>
+      </a>
     </div>
-    <script type="text/javascript" src="comunicator.js"></script>
-    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.0-rc.0/angular.min.js"></script>
-    <script type="text/javascript" src="comunicator-ng.js"></script>
-    <script type="text/javascript" src="index.js"></script>
-  </body>
+  </nav>
+  <div class="container" ng-controller="TestController">
+    <p>
+      <div class="row blank-text">
+        <input type="text" ng-model="whoami" placeholder="Whoami"/>
+        <input type="text" ng-model="what" placeholder="What"/>
+      </div>
+    </p>
+    <div class="row center-align">
+      <button class="btn col s4 blue waves-effect waves-light" ng-click="userIsPresent()">USER IS PRESENT</button>
+      <button class="btn indigo col s4 waves-effect waves-light" ng-click="broadcast()">BROADCAST</button>
+      <button class="btn pink col s4 waves-effect waves-light" ng-click="sendTo()">SEND TO</button>
+    </div>
+  </div>
+  <script type="text/javascript" src="comunicator.js"></script>
+  <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.0-rc.0/angular.min.js"></script>
+  <script type="text/javascript" src="comunicator-ng.js"></script>
+  <script type="text/javascript" src="index.js"></script>
+</body>
 </html>
