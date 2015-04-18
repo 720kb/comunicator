@@ -180,15 +180,22 @@
             , anEventToListen
             , userIsPresent = function userIsPresent(whoami, token) {
 
-                this.whoReallyAmI = whoami;
-                this.reallyToken = token;
-                if (this.whoReallyAmI &&
-                  this.reallyToken) {
+                if (this.whoReallyAmI !== whoami ||
+                  this.reallyToken !== token) {
 
-                  this._doJoin();
+                  this.whoReallyAmI = whoami;
+                  this.reallyToken = token;
+                  if (this.whoReallyAmI &&
+                    this.reallyToken) {
+
+                    this._doJoin();
+                  } else {
+
+                    throw 'User identification datas missing.';
+                  }
                 } else {
 
-                  throw 'User identification datas missing.';
+                  window.console.info('User is already identified.');
                 }
               }
             , broadcast = function broadcast(what) {
