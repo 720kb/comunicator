@@ -171,6 +171,11 @@
                 /*eslint-enable no-console*/
               } else {
 
+                eventEmitter.emit('comunicator:message-arrived', {
+                  'whoami': parsedMsg.data.whoami,
+                  'who': parsedMsg.data.who,
+                  'what': parsedMsg.data.what
+                });
                 sendTo(parsedMsg.data.whoami, parsedMsg.data.who, parsedMsg.data.what);
               }
             });
@@ -193,6 +198,11 @@
                 /*eslint-enable no-console*/
               } else {
 
+                eventEmitter.emit('comunicator:message-arrived', {
+                  'whoami': parsedMsg.data.whoami,
+                  'who': '*',
+                  'what': parsedMsg.data.what
+                });
                 broadcast(parsedMsg.data.whoami, parsedMsg.data.what);
               }
             });
