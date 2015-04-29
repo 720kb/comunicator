@@ -1,4 +1,3 @@
-//http://eslint.org/docs/rules/
 {
   "rules": {
     "no-cond-assign": 2,

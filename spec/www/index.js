@@ -15,9 +15,9 @@
   .controller('TestController', ['$rootScope', '$scope', '$http', '$log', 'Comunicator',
     function TestController($rootScope, $scope, $http, $log, Comunicator) {
 
-      var OnComunicatorJoin
-        , OnComunicatorToMe
-        , OnComunicatorToAll;
+      var unregisterOnComunicatorJoin
+        , unregisterOnComunicatorToMe
+        , unregisterOnComunicatorToAll;
 
       $http.get('/token')
         .success(function onSuccess(data) {
@@ -72,31 +72,31 @@
         });
       };
 
-      OnComunicatorJoin = $rootScope.$on('comunicator:joined', function (eventInfo, data) {
+      unregisterOnComunicatorJoin = $rootScope.$on('comunicator:joined', function onComunicatorJoined(eventInfo, data) {
 
         $scope.running = false;
         $scope.eventData = data;
         $scope.message = 'Connected to comunicator';
       });
-      OnComunicatorToMe = $rootScope.$on('comunicator:to-me', function (eventInfo, data) {
+      unregisterOnComunicatorToMe = $rootScope.$on('comunicator:to-me', function onComunicatorToMe(eventInfo, data) {
 
         $scope.running = false;
         $scope.eventData = data;
         $scope.message = 'A message from comunicator, for you.';
       });
 
-      OnComunicatorToAll = $rootScope.$on('comunicator:to-all', function (eventInfo, data) {
+      unregisterOnComunicatorToAll = $rootScope.$on('comunicator:to-all', function onComunicatorToAll(eventInfo, data) {
 
         $scope.running = false;
         $scope.eventData = data;
         $scope.message = 'A message from comunicator, for all the people.';
       });
 
-      $scope.$on('$destroy', function () {
+      $scope.$on('$destroy', function destroyScope() {
 
-        OnComunicatorToMe();
-        OnComunicatorJoin();
-        OnComunicatorToAll();
+        unregisterOnComunicatorToMe();
+        unregisterOnComunicatorJoin();
+        unregisterOnComunicatorToAll();
       });
   }]);
-}(angular, Comunicator));
+}(angular));

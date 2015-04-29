@@ -1,14 +1,15 @@
-(function withModule(require) {
+/*global __dirname require console*/
+(function withModule(__dirname, require, console) {
   'use strict';
 
   var salt = 'kjwf788fu38l102ijllwefliuh98hegfj98usjsjsnwe%&kjnwef$kjwnflllyyyuii'
-    , comunicator = require('../src/node/comunicator')(salt)
     , jwt = require('jsonwebtoken')
     , Hapi = require('hapi')
     , server = new Hapi.Server()
     , path = require('path')
-    , publicFolder = path.resolve(__dirname, '', 'www');;
+    , publicFolder = path.resolve(__dirname, '', 'www');
 
+  require('../src/node/comunicator')(salt);
   server.connection({'host': '0.0.0.0', 'port': 3000});
 
   server.route({
@@ -40,4 +41,4 @@
 
     console.log('Server running at:', server.info.uri);
   });
-}(require));
+}(__dirname, require, console));
