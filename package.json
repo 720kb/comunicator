@@ -25,7 +25,7 @@
     "js-min": "./tasks/banner | xargs -0 -I banner uglifyjs src/js/comunicator.js --preamble banner -c -m --screw-ie8 -p relative --source-map dist/comunicator.min.js.map -o dist/comunicator.min.js",
     "ng-min": "./tasks/banner | xargs -0 -I banner uglifyjs src/js/comunicator.js src/angular/comunicator.js --preamble banner -c -m --screw-ie8 -p relative --source-map dist/comunicator-angular.min.js.map -o dist/comunicator-angular.min.js",
     "min": "npm run-script js-min && npm run-script ng-min",
-    "lint": "eslint -c .eslintrc src",
+    "lint": "eslint -c .eslintrc src && jscs -c .jscsrc src",
     "go": "npm run-script lint && npm run-script min && git commit -am 'new minified version ready for versioning'",
     "test": "node spec/start-node.js",
     "precommit": "npm run-script lint"
@@ -46,6 +46,7 @@
     "eslint": "^0.20.0",
     "hapi": "^8.4.0",
     "husky": "^0.7.0",
+    "jscs": "^1.13.1",
     "uglify-js": "^2.4.20"
   }
 }
