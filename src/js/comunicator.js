@@ -2,7 +2,7 @@
 (function plainOldJS(window) {
   'use strict';
 
-  var Comunicator = function Comunicator(url) {
+  var Comunicator = function Comunicator(url, managed) {
 
     var onTick = function onTick(redoFunction, type) {
 
@@ -53,6 +53,7 @@
 
         this.websocket.push(JSON.stringify({
           'opcode': 'join',
+          'managed': this.managed,
           'whoami': this.whoReallyAmI,
           'token': this.reallyToken
         }));
@@ -169,6 +170,7 @@
     };
 
     this.initComunicator(url);
+    this.managed = managed;
   };
 
   Comunicator.prototype.promise = function promise(events) {

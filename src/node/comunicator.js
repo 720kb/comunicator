@@ -18,7 +18,8 @@
         console.info('Server listen websocket connections on host - port:', comunicatorHost, '-', comunicatorPort);
         /*eslint-enable no-console*/
       })
-    , sendPendingRequests = {};
+    , sendPendingRequests = {}
+    , isManaged;
 
   module.exports = function toExport(jwtSaltKey) {
 
@@ -131,6 +132,11 @@
                 , sendPendingRequestsLength
                 , aSendPendingRequest;
 
+              if (parsedMsg.managed) {
+
+                isManaged = parsedMsg.managed;
+              }
+
               aWebSocket.send(JSON.stringify(toSend));
               eventEmitter.emit('comunicator:user-joined', parsedMsg.whoami);
               if (sendPendingRequests[parsedMsg.whoami]) {
@@ -191,7 +197,11 @@
                 'who': parsedMsg.data.who,
                 'what': parsedMsg.data.what
               });
-              sendTo(parsedMsg.data.whoami, parsedMsg.data.who, parsedMsg.data.what);
+
+              if (!isManaged) {
+
+                sendTo(parsedMsg.data.whoami, parsedMsg.data.who, parsedMsg.data.what);
+              }
             }
           });
         } else
@@ -225,7 +235,11 @@
                 'who': '*',
                 'what': parsedMsg.data.what
               });
-              broadcast(parsedMsg.data.whoami, parsedMsg.data.what);
+
+              if (!isManaged) {
+
+                broadcast(parsedMsg.data.whoami, parsedMsg.data.what);
+              }
             }
           });
         } else {
@@ -265,7 +279,6 @@
       };
 
     wss.on('connection', onRequest);
-
     eventEmitter.broadcast = broadcast;
     eventEmitter.sendTo = sendTo;
     eventEmitter.isUserPresent = isUserPresent;
