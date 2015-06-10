@@ -260,7 +260,13 @@
           aSocketKey = socketsKeys[socketIndex];
           if (aWebSocket === sockets[aSocketKey]) {
 
-            eventEmitter.emit('comunicator:user-leave', aSocketKey);
+            if (isNaN(aSocketKey)) {
+
+              eventEmitter.emit('comunicator:user-leave', aSocketKey);
+            } else {
+
+              eventEmitter.emit('comunicator:user-leave', Number(aSocketKey));
+            }
             delete sockets[aSocketKey];
           }
         }
