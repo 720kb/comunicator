@@ -2,7 +2,7 @@
 (function plainOldJS(window) {
   'use strict';
 
-  var Comunicator = function Comunicator(url, managed) {
+  var Comunicator = function Comunicator(url) {
 
     var onTick = function onTick(redoFunction, type) {
 
@@ -53,7 +53,6 @@
 
         this.websocket.push(JSON.stringify({
           'opcode': 'join',
-          'managed': this.managed,
           'whoami': this.whoReallyAmI,
           'token': this.reallyToken
         }));
@@ -170,7 +169,6 @@
     };
 
     this.initComunicator(url);
-    this.managed = managed;
   };
 
   Comunicator.prototype.promise = function promise(events) {
@@ -208,7 +206,7 @@
               window.console.info('User is already identified.');
             }
           }
-          , broadcast = function broadcast(what) {
+          , broadcast = function broadcast(what, managed) {
 
             if (this.whoReallyAmI &&
               this.websocket) {
@@ -219,13 +217,18 @@
                 'what': what
               };
 
+              if (managed) {
+
+                toSend.managed = true;
+              }
+
               this.websocket.send('broadcast', toSend);
             } else {
 
               throw 'User identification required';
             }
           }
-          , sendTo = function sendTo(who, what) {
+          , sendTo = function sendTo(who, what, managed) {
 
             if (this.whoReallyAmI &&
               this.websocket) {
@@ -235,6 +238,11 @@
                 'who': who,
                 'what': what
               };
+
+              if (managed) {
+
+                toSend.managed = true;
+              }
 
               this.websocket.send('sendTo', toSend);
             } else {

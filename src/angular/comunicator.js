@@ -9,6 +9,7 @@
       , initComunicator = function initComunicator(url) {
 
         comunicator = new Comunicator(url);
+        return comunicator;
       };
 
     return {

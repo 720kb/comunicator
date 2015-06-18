@@ -18,8 +18,7 @@
         console.info('Server listen websocket connections on host - port:', comunicatorHost, '-', comunicatorPort);
         /*eslint-enable no-console*/
       })
-    , sendPendingRequests = {}
-    , isManaged;
+    , sendPendingRequests = {};
 
   module.exports = function toExport(jwtSaltKey) {
 
@@ -132,11 +131,6 @@
                 , sendPendingRequestsLength
                 , aSendPendingRequest;
 
-              if (parsedMsg.managed) {
-
-                isManaged = parsedMsg.managed;
-              }
-
               aWebSocket.send(JSON.stringify(toSend));
               eventEmitter.emit('comunicator:user-joined', parsedMsg.whoami);
               if (sendPendingRequests[parsedMsg.whoami]) {
@@ -198,7 +192,7 @@
                 'what': parsedMsg.data.what
               });
 
-              if (!isManaged) {
+              if (parsedMsg.managed) {
 
                 sendTo(parsedMsg.data.whoami, parsedMsg.data.who, parsedMsg.data.what);
               }
@@ -236,7 +230,7 @@
                 'what': parsedMsg.data.what
               });
 
-              if (!isManaged) {
+              if (parsedMsg.managed) {
 
                 broadcast(parsedMsg.data.whoami, parsedMsg.data.what);
               }
