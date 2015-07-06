@@ -67,7 +67,7 @@
           $window.removeEventListener('comunicator:closed', arrivedClosed, false);
         });
 
-        return comunicator.promise();
+        return comunicator;
       }]
     };
   });

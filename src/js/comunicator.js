@@ -30,6 +30,92 @@
         //window.console.debug('Chosen time wait value:', this.chosenTimeWaitValue);
         redoFunction();
       }
+    }
+    , deferred = function deferred(resolve) {
+
+      var userIsPresent = function userIsPresent(whoami, token) {
+
+        if (this.whoReallyAmI !== whoami ||
+          this.reallyToken !== token) {
+
+          this.whoReallyAmI = whoami;
+          this.reallyToken = token;
+          if (this.whoReallyAmI &&
+            this.reallyToken) {
+
+            this.doJoin();
+          } else {
+
+            throw 'User identification datas missing.';
+          }
+        } else {
+
+          window.console.info('User is already identified.');
+        }
+      }
+      , broadcast = function broadcast(what, managed) {
+
+        if (this.whoReallyAmI &&
+          this.websocket) {
+
+          var toSend = {
+            'whoami': this.whoReallyAmI,
+            'who': '*',
+            'what': what
+          };
+
+          if (managed) {
+
+            toSend.managed = true;
+          }
+
+          this.websocket.send('broadcast', toSend);
+        } else {
+
+          throw 'User identification required';
+        }
+      }
+      , sendTo = function sendTo(who, what, managed) {
+
+        if (this.whoReallyAmI &&
+          this.websocket) {
+
+          var toSend = {
+            'whoami': this.whoReallyAmI,
+            'who': who,
+            'what': what
+          };
+
+          if (managed) {
+
+            toSend.managed = true;
+          }
+
+          this.websocket.send('sendTo', toSend);
+        } else {
+
+          throw 'User identification required';
+        }
+      }
+      , doClose = function doClose() {
+
+        if (this.websocket.readyState === window.WebSocket.OPEN) {
+
+          this.websocket.close();
+        }
+      }
+      , resolveComunicator = function resolveComunicator() {
+
+        window.removeEventListener(this.eventToListen, resolveComunicator, false);
+        resolve({
+          'userIsPresent': userIsPresent.bind(this),
+          'broadcast': broadcast.bind(this),
+          'sendTo': sendTo.bind(this),
+          'exit': doClose.bind(this)
+        });
+      };
+
+      window.addEventListener(this.eventToListen, resolveComunicator.bind(this), false);
     };
 
     this.eventToListen = 'comunicator:ready';
@@ -172,102 +258,6 @@
     };
 
     this.initComunicator(url);
-  };
-
-  Comunicator.prototype.promise = function promise() {
-
-    if (!this.websocket) {
-
-      throw 'Mandatory field comunicatorServerURL required';
-    }
-
-    var deferred = function deferred(resolve) {
-
-      var userIsPresent = function userIsPresent(whoami, token) {
-
-        if (this.whoReallyAmI !== whoami ||
-          this.reallyToken !== token) {
-
-          this.whoReallyAmI = whoami;
-          this.reallyToken = token;
-          if (this.whoReallyAmI &&
-            this.reallyToken) {
-
-            this.doJoin();
-          } else {
-
-            throw 'User identification datas missing.';
-          }
-        } else {
-
-          window.console.info('User is already identified.');
-        }
-      }
-      , broadcast = function broadcast(what, managed) {
-
-        if (this.whoReallyAmI &&
-          this.websocket) {
-
-          var toSend = {
-            'whoami': this.whoReallyAmI,
-            'who': '*',
-            'what': what
-          };
-
-          if (managed) {
-
-            toSend.managed = true;
-          }
-
-          this.websocket.send('broadcast', toSend);
-        } else {
-
-          throw 'User identification required';
-        }
-      }
-      , sendTo = function sendTo(who, what, managed) {
-
-        if (this.whoReallyAmI &&
-          this.websocket) {
-
-          var toSend = {
-            'whoami': this.whoReallyAmI,
-            'who': who,
-            'what': what
-          };
-
-          if (managed) {
-
-            toSend.managed = true;
-          }
-
-          this.websocket.send('sendTo', toSend);
-        } else {
-
-          throw 'User identification required';
-        }
-      }
-      , doClose = function doClose() {
-
-        if (this.websocket.readyState === window.WebSocket.OPEN) {
-
-          this.websocket.close();
-        }
-      }
-      , resolveComunicator = function resolveComunicator() {
-
-        window.removeEventListener(this.eventToListen, resolveComunicator, false);
-        resolve({
-          'userIsPresent': userIsPresent.bind(this),
-          'broadcast': broadcast.bind(this),
-          'sendTo': sendTo.bind(this),
-          'exit': doClose.bind(this)
-        });
-      };
-
-      window.addEventListener(this.eventToListen, resolveComunicator.bind(this), false);
-    };
-
     return new Promise(deferred.bind(this));
   };
 
