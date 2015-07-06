@@ -104,10 +104,15 @@
           this.websocket.close();
         }
       }
+      , whoAmI = function whoAmI() {
+
+        return this.whoReallyAmI;
+      }
       , resolveComunicator = function resolveComunicator() {
 
         window.removeEventListener(this.eventToListen, resolveComunicator, false);
         resolve({
+          'whoAmI': whoAmI.bind(this),
           'userIsPresent': userIsPresent.bind(this),
           'broadcast': broadcast.bind(this),
           'sendTo': sendTo.bind(this),
