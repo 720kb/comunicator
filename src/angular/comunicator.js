@@ -17,62 +17,42 @@
       '$get': ['$rootScope', '$window', '$log',
       function instantiateProvider($rootScope, $window, $log) {
 
-        var eventsToListen = ['$stateChangeSuccess', '$routeChangeSuccess']
-          , domEvent = 'comunicator:ready'
-          , unregisterListeners = []
-          , eventsToListenLength = eventsToListen.length
-          , eventsToListenIndex = 0
-          , anEventToListen
-          , arrivedJoined = function arrivedJoined() {
+        var arrivedJoined = function arrivedJoined() {
 
-            $rootScope.$apply(function doApply(scope) {
+          $rootScope.$apply(function doApply(scope) {
 
-              scope.$emit('comunicator:joined');
-            });
+            scope.$emit('comunicator:joined');
+          });
 
-            $log.debug('comunicator:joined dispatched');
-          }
-          , arrivedToMe = function arrivedToMe(event) {
+          $log.debug('comunicator:joined dispatched');
+        }
+        , arrivedToMe = function arrivedToMe(event) {
 
-            $rootScope.$apply(function doApply(scope) {
+          $rootScope.$apply(function doApply(scope) {
 
-              scope.$emit('comunicator:to-me', event.detail);
-            });
+            scope.$emit('comunicator:to-me', event.detail);
+          });
 
-            $log.debug('comunicator:to-me dispatched');
-          }
-          , arrivedToAll = function arrivedToAll(event) {
+          $log.debug('comunicator:to-me dispatched');
+        }
+        , arrivedToAll = function arrivedToAll(event) {
 
-            $rootScope.$apply(function doApply(scope) {
+          $rootScope.$apply(function doApply(scope) {
 
-              scope.$emit('comunicator:to-all', event.detail);
-            });
+            scope.$emit('comunicator:to-all', event.detail);
+          });
 
-            $log.debug('comunicator:to-all dispatched');
-          }
-          , arrivedClosed = function arrivedClosed() {
+          $log.debug('comunicator:to-all dispatched');
+        }
+        , arrivedClosed = function arrivedClosed() {
 
-            $rootScope.$apply(function doApply(scope) {
+          $rootScope.$apply(function doApply(scope) {
 
-              scope.$emit('comunicator:closed');
-            });
+            scope.$emit('comunicator:closed');
+          });
 
-            $log.debug('comunicator:closed dispatched');
-          }
-          , resolveComunicator = function resolveComunicator() {
-
-            var unregisterListenersIndex = 0
-              , unregisterListenersLength = unregisterListeners.length
-              , kickOffEvent = new $window.Event(domEvent);
-
-            for (; unregisterListenersIndex < unregisterListenersLength; unregisterListenersIndex += 1) {
-
-              unregisterListeners[unregisterListenersIndex]();
-            }
-
-            $window.dispatchEvent(kickOffEvent);
-            $log.debug('KickOff DOM Event triggered');
-          };
+          $log.debug('comunicator:closed dispatched');
+        };
 
         $window.addEventListener('comunicator:joined', arrivedJoined, false);
         $window.addEventListener('comunicator:to-me', arrivedToMe, false);
@@ -87,13 +67,7 @@
           $window.removeEventListener('comunicator:closed', arrivedClosed, false);
         });
 
-        for (; eventsToListenIndex < eventsToListenLength; eventsToListenIndex += 1) {
-
-          anEventToListen = eventsToListen[eventsToListenIndex];
-          unregisterListeners.push($rootScope.$on(anEventToListen, resolveComunicator));
-        }
-
-        return comunicator.promise([domEvent]);
+        return comunicator.promise();
       }]
     };
   });

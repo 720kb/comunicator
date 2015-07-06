@@ -32,6 +32,7 @@
       }
     };
 
+    this.eventToListen = 'comunicator:ready';
     this.timeWaitSlice = 9000;
     this.timeWaitSliceChoices = [0];
     this.chosenTimeWaitValue = 0;
@@ -151,11 +152,13 @@
     };
     this.initComunicator = function initComunicator(websocketUrl) {
       if (websocketUrl) {
+        var that = this;
 
         this.websocket = new window.WebSocket(websocketUrl);
         this.websocket.onopen = function onWebSocketOpening() {
 
           window.console.info('Trasport', this, 'opened.');
+          window.dispatchEvent(new window.CustomEvent(that.eventToListen));
         };
       } else {
 
@@ -171,125 +174,101 @@
     this.initComunicator(url);
   };
 
-  Comunicator.prototype.promise = function promise(events) {
+  Comunicator.prototype.promise = function promise() {
 
     if (!this.websocket) {
 
       throw 'Mandatory field comunicatorServerURL required';
     }
 
-    if (events &&
-      Array.isArray(events)) {
+    var deferred = function deferred(resolve) {
 
-      var deferred = function deferred(resolve) {
+      var userIsPresent = function userIsPresent(whoami, token) {
 
-        var eventsToListenLength = events.length
-          , eventsToListenIndex
-          , anEventToListen
-          , userIsPresent = function userIsPresent(whoami, token) {
+        if (this.whoReallyAmI !== whoami ||
+          this.reallyToken !== token) {
 
-            if (this.whoReallyAmI !== whoami ||
-              this.reallyToken !== token) {
+          this.whoReallyAmI = whoami;
+          this.reallyToken = token;
+          if (this.whoReallyAmI &&
+            this.reallyToken) {
 
-              this.whoReallyAmI = whoami;
-              this.reallyToken = token;
-              if (this.whoReallyAmI &&
-                this.reallyToken) {
+            this.doJoin();
+          } else {
 
-                this.doJoin();
-              } else {
-
-                throw 'User identification datas missing.';
-              }
-            } else {
-
-              window.console.info('User is already identified.');
-            }
+            throw 'User identification datas missing.';
           }
-          , broadcast = function broadcast(what, managed) {
+        } else {
 
-            if (this.whoReallyAmI &&
-              this.websocket) {
+          window.console.info('User is already identified.');
+        }
+      }
+      , broadcast = function broadcast(what, managed) {
 
-              var toSend = {
-                'whoami': this.whoReallyAmI,
-                'who': '*',
-                'what': what
-              };
+        if (this.whoReallyAmI &&
+          this.websocket) {
 
-              if (managed) {
-
-                toSend.managed = true;
-              }
-
-              this.websocket.send('broadcast', toSend);
-            } else {
-
-              throw 'User identification required';
-            }
-          }
-          , sendTo = function sendTo(who, what, managed) {
-
-            if (this.whoReallyAmI &&
-              this.websocket) {
-
-              var toSend = {
-                'whoami': this.whoReallyAmI,
-                'who': who,
-                'what': what
-              };
-
-              if (managed) {
-
-                toSend.managed = true;
-              }
-
-              this.websocket.send('sendTo', toSend);
-            } else {
-
-              throw 'User identification required';
-            }
-          }
-          , doClose = function doClose() {
-
-            if (this.websocket.readyState === window.WebSocket.OPEN) {
-
-              this.websocket.close();
-            }
-          }
-          , resolveComunicator = function resolveComunicator() {
-
-            for (eventsToListenIndex = 0; eventsToListenIndex < eventsToListenLength; eventsToListenIndex += 1) {
-
-              anEventToListen = events[eventsToListenIndex];
-              if (anEventToListen) {
-
-                window.removeEventListener(anEventToListen, resolveComunicator, false);
-              }
-            }
-
-            resolve({
-              'userIsPresent': userIsPresent.bind(this),
-              'broadcast': broadcast.bind(this),
-              'sendTo': sendTo.bind(this),
-              'exit': doClose.bind(this)
-            });
+          var toSend = {
+            'whoami': this.whoReallyAmI,
+            'who': '*',
+            'what': what
           };
 
-        for (eventsToListenIndex = 0; eventsToListenIndex < eventsToListenLength; eventsToListenIndex += 1) {
+          if (managed) {
 
-          anEventToListen = events[eventsToListenIndex];
-          if (anEventToListen) {
-
-            window.addEventListener(anEventToListen, resolveComunicator.bind(this), false);
+            toSend.managed = true;
           }
+
+          this.websocket.send('broadcast', toSend);
+        } else {
+
+          throw 'User identification required';
         }
+      }
+      , sendTo = function sendTo(who, what, managed) {
+
+        if (this.whoReallyAmI &&
+          this.websocket) {
+
+          var toSend = {
+            'whoami': this.whoReallyAmI,
+            'who': who,
+            'what': what
+          };
+
+          if (managed) {
+
+            toSend.managed = true;
+          }
+
+          this.websocket.send('sendTo', toSend);
+        } else {
+
+          throw 'User identification required';
+        }
+      }
+      , doClose = function doClose() {
+
+        if (this.websocket.readyState === window.WebSocket.OPEN) {
+
+          this.websocket.close();
+        }
+      }
+      , resolveComunicator = function resolveComunicator() {
+
+        window.removeEventListener(this.eventToListen, resolveComunicator, false);
+        resolve({
+          'userIsPresent': userIsPresent.bind(this),
+          'broadcast': broadcast.bind(this),
+          'sendTo': sendTo.bind(this),
+          'exit': doClose.bind(this)
+        });
       };
 
-      return new Promise(deferred.bind(this));
-    }
+      window.addEventListener(this.eventToListen, resolveComunicator.bind(this), false);
+    };
 
-    throw 'events must be defined and must be an array';
+    return new Promise(deferred.bind(this));
   };
 
   window.Comunicator = Comunicator;

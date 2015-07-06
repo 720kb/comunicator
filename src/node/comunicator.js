@@ -192,7 +192,7 @@
                 'what': parsedMsg.data.what
               });
 
-              if (parsedMsg.managed) {
+              if (!parsedMsg.managed) {
 
                 sendTo(parsedMsg.data.whoami, parsedMsg.data.who, parsedMsg.data.what);
               }
@@ -230,7 +230,7 @@
                 'what': parsedMsg.data.what
               });
 
-              if (parsedMsg.managed) {
+              if (!parsedMsg.managed) {
 
                 broadcast(parsedMsg.data.whoami, parsedMsg.data.what);
               }
