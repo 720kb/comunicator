@@ -24,7 +24,7 @@
   "scripts": {
     "js-min": "./tasks/banner | xargs -0 -I banner uglifyjs src/js/comunicator.js --preamble banner -c -m --screw-ie8 -p relative --source-map dist/comunicator.min.js.map -o dist/comunicator.min.js",
     "ng-min": "./tasks/banner | xargs -0 -I banner uglifyjs src/js/comunicator.js src/angular/comunicator.js --preamble banner -c -m --screw-ie8 -p relative --source-map dist/comunicator-angular.min.js.map -o dist/comunicator-angular.min.js",
-    "min": "npm run-script js-min && npm run-script ng-min",
+    "min": "npm run-script js-min && npm run-script ng-min && plato -r -d report -l .jshintrc -t \"comunicator\" src/",
     "lint": "eslint -c .eslintrc src && jshint -c .jshintrc --reporter=unix src && jscs -c .jscsrc src",
     "test": "node spec/start-node.js",
     "debug": "node-debug spec/start-node.js",
@@ -49,6 +49,7 @@
     "jscs": "^1.13.1",
     "jshint": "^2.8.0",
     "node-inspector": "^0.11.1",
+    "plato": "^1.5.0",
     "uglify-js": "^2.4.20"
   }
 }
