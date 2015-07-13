@@ -143,13 +143,13 @@
 
       if (this.websocket.readyState === window.WebSocket.OPEN) {
 
-        this.websocket.push(JSON.stringify({
+        this.websocket.push(window.JSON.stringify({
           'opcode': 'join',
           'whoami': this.whoReallyAmI,
           'token': this.reallyToken
         }));
 
-        for (joinPendingRequestsIndex = 0, joinPendingRequestsLength = this.joinPendingRequests.length; joinPendingRequestsIndex < joinPendingRequestsLength; joinPendingRequestsIndex += 1) {
+        for (joinPendingRequestsLength = this.joinPendingRequests.length; joinPendingRequestsIndex < joinPendingRequestsLength; joinPendingRequestsIndex += 1) {
 
           aPendingRequest = this.joinPendingRequests[joinPendingRequestsIndex];
           window.cancelAnimationFrame(aPendingRequest);
@@ -222,13 +222,13 @@
 
       if (this.websocket.readyState === window.WebSocket.OPEN) {
 
-        this.websocket.push(JSON.stringify({
+        this.websocket.push(window.JSON.stringify({
           'opcode': opcode,
           'token': this.reallyToken,
           'data': data
         }));
 
-        for (sendPendingRequestsIndex = 0, sendPendingRequestsLength = this.sendPendingRequests.length; sendPendingRequestsIndex < sendPendingRequestsLength; sendPendingRequestsIndex += 1) {
+        for (sendPendingRequestsLength = this.sendPendingRequests.length; sendPendingRequestsIndex < sendPendingRequestsLength; sendPendingRequestsIndex += 1) {
 
           aPendingRequest = this.sendPendingRequests[sendPendingRequestsIndex];
           window.cancelAnimationFrame(aPendingRequest);
@@ -263,7 +263,7 @@
     };
 
     this.initComunicator(url);
-    return new Promise(deferred.bind(this));
+    return new window.Promise(deferred.bind(this));
   };
 
   window.Comunicator = Comunicator;

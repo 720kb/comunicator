@@ -1,4 +1,4 @@
-/*global __dirname require console*/
+/*global __dirname,require,console*/
 (function withModule(__dirname, require, console) {
   'use strict';
 
@@ -10,7 +10,10 @@
     , publicFolder = path.resolve(__dirname, '', 'www');
 
   require('../src/node/comunicator')(salt);
-  server.connection({'host': '0.0.0.0', 'port': 3000});
+  server.connection({
+    'host': '0.0.0.0',
+    'port': 3000
+  });
 
   server.route({
     'method': 'GET',
@@ -22,7 +25,10 @@
         'user': userID
       }, salt);
 
-      reply({'token': token, 'userID': userID});
+      reply({
+        'token': token,
+        'userID': userID
+      });
     }
   });
 

@@ -1,4 +1,4 @@
-/*global module require process console*/
+/*global module,require,process,console,JSON*/
 (function moduleExport(module, require, process, console) {
   'use strict';
 

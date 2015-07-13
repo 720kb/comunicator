@@ -1,4 +1,4 @@
-/*global angular Comunicator*/
+/*global angular,Comunicator*/
 (function withAngular(angular, Comunicator) {
   'use strict';
 
