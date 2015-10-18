@@ -99,8 +99,12 @@
       }
       , doClose = function doClose() {
 
-        if (this.websocket.readyState === window.WebSocket.OPEN) {
+        if (this.whoReallyAmI &&
+          this.reallyToken &&
+          this.websocket.readyState === window.WebSocket.OPEN) {
 
+          this.whoReallyAmI = undefined;
+          this.reallyToken = undefined;
           this.websocket.close();
         }
       }

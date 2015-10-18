@@ -28,7 +28,10 @@
     "lint": "eslint -c .eslintrc src && jshint -c .jshintrc --reporter=unix src && jscs -c .jscsrc src",
     "test": "node spec/start-node.js",
     "debug": "node-debug spec/start-node.js",
-    "precommit": "npm run-script lint"
+    "precommit": "npm run-script lint",
+    "preversion": "npm run-script lint",
+    "version": "npm run-script min && ./tasks/bower-version-bump && git add -A .",
+    "postversion": "git push && git push --tags"
   },
   "bugs": {
     "url": "http://github.com/720kb/comunicator/issues"
