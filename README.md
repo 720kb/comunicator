@@ -1,13 +1,17 @@
 # Comunicator 
 <div style="text-align:center"><img src="http://720kb.github.io/media/comunicator/logo.svg" alt="logo"></div>
 
-A way to enstablish a websocket connection in your application. Could be use in AngularJS, via a provider, or in a plain javascript. 
+A way to enstablish a websocket connection between users using your application and your back end that, in a scenario where on of between the client or the server goes offline, it enques unsent message waiting for reconnection; this is done implementing an [_exponetial backoff_](https://en.wikipedia.org/wiki/Exponential_backoff) algorithm to not overload the two part in comunication.
+
+It use a well defined protocol so it can be possible to integrate with also with other back ends implemented without nodejs.
+
+Could be use in AngularJS, via a provider, or in a plain javascript.
 
 The Comunicator is developed by [720kb](http://720kb.net).
 
 ## Requirements
 
-This implementation, due the fact it wraps a websocket, needs a browser capable to instantiate [websockets](http://caniuse.com/#search=websocket) and also [requestAnimationFrame](http://caniuse.com/#feat=requestanimationframe) ("_shimmed_" or not).
+This implementation, due the fact it wraps a websocket, needs a browser capable to instantiate [websockets](http://caniuse.com/#search=websocket) and also [requestAnimationFrame](http://caniuse.com/#feat=requestanimationframe) ("_shimmed_" or not) for the exponential back off algorithm.
 
 The AngularJS provider need at least version 1.2.
 
@@ -25,6 +29,10 @@ $ bower install --save comunicator
 ```
 
 ### Loading
+
+#### Nodejs side
+
+#### Client side
 The files you need are `dist/comunicator.min.js` for the plain javascript implementation, `dist/comunicator-angular.min.js` for the AngularJS provider.
 In case you using the AngularJS provider you have to include the module that brings the provider; for example:
 
@@ -33,6 +41,10 @@ angular.module('app', [
   '720kb.comunicator'
  ]);
 ```
+
+### API
+
+
 
 
 ## Contributing
