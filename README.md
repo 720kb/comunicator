@@ -1,24 +1,47 @@
-comunicator
-=========
+# Comunicator 
+<div style="text-align:center"><img src="http://720kb.github.io/media/comunicator/logo.svg" alt="logo"></div>
 
-A simple way to enstablish a two way comunication between a nodejs and an angularjs application.
+A way to enstablish a websocket connection in your application. Could be use in AngularJS, via a provider, or in a plain javascript. 
 
-Documentation
-=========
-TODO
+The Comunicator is developed by [720kb](http://720kb.net).
 
-Installing
-=========
+## Requirements
 
-comunicator could be installed via npm `npm install comunicator`
+This implementation, due the fact it wraps a websocket, needs a browser capable to instantiate [websockets](http://caniuse.com/#search=websocket) and also [requestAnimationFrame](http://caniuse.com/#feat=requestanimationframe) ("_shimmed_" or not).
 
-Contributing
-=========
+The AngularJS provider need at least version 1.2.
+
+## Installation 
+
+Comunicator could be installed via npm or bower 
+
+#### NPM
+```sh
+$ npm install --save comunicator
+```
+#### Bower 
+```sh
+$ bower install --save comunicator
+```
+
+### Loading
+The files you need are `dist/comunicator.min.js` for the plain javascript implementation, `dist/comunicator-angular.min.js` for the AngularJS provider.
+In case you using the AngularJS provider you have to include the module that brings the provider; for example:
+
+```js
+angular.module('app', [
+  '720kb.comunicator'
+ ]);
+```
+
+
+## Contributing
+
 We will be much grateful if you help us making this project to grow up.
 Feel free to contribute by forking, opening issues, pull requests etc.
 
-License
-=========
+## License
+
 The MIT License (MIT)
 
 Copyright (c) 2014 Dario Andrei, Filippo Oretti
