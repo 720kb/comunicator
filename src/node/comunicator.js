@@ -1,283 +1,289 @@
 /*global require,module,process,console*/
-const ws = require('ws')
-  , jwt = require('jsonwebtoken')
-  , sockets = {}
-  , sendPendingRequests = {};
+(function withNode(require, module, process, console) {
+  'use strict';
 
-class Comunicator extends ws.Server {
+  const ws = require('ws')
+    , jwt = require('jsonwebtoken')
+    , connectedSockets = new Map()
+    , sendPendingRequests = {};
 
-  constructor(host, port, jwtSaltKey) {
+  class Comunicator extends ws.Server {
 
-    host = host || process.env.COMUNICATOR_HOST || '0.0.0.0';
-    port = port || process.env.COMUNICATOR_PORT || 9876;
-    super({
-      'host': host,
-      'port': port
-    }, function comunicatorWebSocketUpAndRunning() {
+    constructor(host, port, jwtSaltKey) {
 
-      /*eslint-disable no-console*/
-      console.info('Server listen websocket connections on host - port:', host, '-', port);
-      /*eslint-enable no-console*/
-    });
+      if (arguments.length === 1) {
 
-    const websocketClosed = function websocketClosed(aWebSocket) {
-      var socketsKeys = Object.keys(sockets)
-        , socketIndex
-        , aSocketKey;
-
-      for (socketIndex = 0; socketIndex < socketsKeys.length; socketIndex += 1) {
-
-        aSocketKey = socketsKeys[socketIndex];
-        if (aWebSocket === sockets[aSocketKey]) {
-
-          if (isNaN(aSocketKey)) {
-
-            this.emit('comunicator:user-leave', aSocketKey);
-          } else {
-
-            this.emit('comunicator:user-leave', Number(aSocketKey));
-          }
-          delete sockets[aSocketKey];
-        }
+        jwtSaltKey = host;
+        host = undefined;
+        port = undefined;
       }
-    }
-    , manageIncomingMessage = function manageIncomingMessage(message, aWebSocket) {
 
-      var parsedMsg = JSON.parse(message);
-      /* {'opcode': 'join', 'whoami': <id>, 'token': <jwt-token>} */
-      if (parsedMsg.opcode === 'join') {
+      host = host || process.env.COMUNICATOR_HOST || '0.0.0.0';
+      port = port || process.env.COMUNICATOR_PORT || 9876;
+      super({
+        'host': host,
+        'port': port
+      }, () => {
 
-        /*eslint-disable no-console*/
-        console.log('-- incoming ---', {
-          'opcode': 'join',
-          'whoami': parsedMsg.whoami
+        this.emit('comunicator:ready', {
+          'host': host,
+          'port': port
         });
-        /*eslint-enable no-console*/
-        jwt.verify(parsedMsg.token, jwtSaltKey, (err) => {
+      });
 
-          if (err) {
+      const websocketClosed = function websocketClosed(aWebSocket) {
 
-            /*eslint-disable no-console*/
-            console.error(err);
-            /*eslint-enable no-console*/
-          } else {
+        for (let aSocket of connectedSockets) {
 
-            sockets[parsedMsg.whoami] = aWebSocket;
-            var toSend = {
-                'opcode': 'joined',
-                'whoami': parsedMsg.whoami,
-                'token': parsedMsg.token
-              }
-              , sendPendingRequestsIndex = 0
-              , sendPendingRequestsLength
-              , aSendPendingRequest;
+          if (aSocket &&
+            aSocket.length === 2 &&
+            aWebSocket === aSocket[1]) {
 
-            aWebSocket.send(JSON.stringify(toSend));
-            this.emit('comunicator:user-joined', parsedMsg.whoami);
-            if (sendPendingRequests[parsedMsg.whoami]) {
+            if (isNaN(aSocket[0])) {
 
-              sendPendingRequestsLength = sendPendingRequests[parsedMsg.whoami].length;
-              for (sendPendingRequestsIndex = 0; sendPendingRequestsIndex < sendPendingRequestsLength; sendPendingRequestsIndex += 1) {
-
-                aSendPendingRequest = sendPendingRequests[parsedMsg.whoami][sendPendingRequestsIndex];
-                if (aSendPendingRequest) {
-
-                  aSendPendingRequest();
-                } else {
-
-                  /*eslint-disable no-console*/
-                  console.warn('A sending pending request is invalid.');
-                  /*eslint-enable no-console*/
-                }
-              }
-              sendPendingRequests[parsedMsg.whoami] = [];
-              delete sendPendingRequests[parsedMsg.whoami];
+              this.emit('comunicator:user-leave', aSocket[0]);
             } else {
 
-              /*eslint-disable no-console*/
-              console.info('No pending requests for', parsedMsg.whoami, 'user.');
-              /*eslint-enable no-console*/
+              this.emit('comunicator:user-leave', Number(aSocket[0]));
             }
+            connectedSockets.delete(aSocket[0]);
           }
-        });
-      } else
-      /* {'opcode': 'sendTo', 'token': <jwt-token>, 'data': {'whoami': <id>, 'who': <id>, 'what': payload}} */
-      if (parsedMsg.opcode === 'sendTo' &&
-        parsedMsg.data &&
-        parsedMsg.data.who &&
-        parsedMsg.data.whoami &&
-        parsedMsg.data.what) {
+        }
+      }
+      , manageIncomingMessage = function manageIncomingMessage(message, aWebSocket) {
 
-        /*eslint-disable no-console*/
-        console.log('-- incoming ---', {
-          'opcode': 'sendTo',
-          'data': {
-            'whoami': parsedMsg.data.whoami,
-            'who': parsedMsg.data.who,
-            'what': parsedMsg.data.what
-          }
-        });
-        /*eslint-enable no-console*/
-        jwt.verify(parsedMsg.token, jwtSaltKey, (err) => {
+        var parsedMsg = JSON.parse(message);
+        /* {'opcode': 'join', 'whoami': <id>, 'token': <jwt-token>} */
+        if (parsedMsg.opcode === 'join') {
 
-          if (err) {
+          /*eslint-disable no-console*/
+          console.log('-- incoming ---', {
+            'opcode': 'join',
+            'whoami': parsedMsg.whoami
+          });
+          /*eslint-enable no-console*/
+          jwt.verify(parsedMsg.token, jwtSaltKey, (err) => {
 
-            /*eslint-disable no-console*/
-            console.error(err);
-            /*eslint-enable no-console*/
-          } else {
+            if (err) {
 
-            this.emit('comunicator:message-arrived', {
+              /*eslint-disable no-console*/
+              console.error(err);
+              /*eslint-enable no-console*/
+            } else {
+
+              connectedSockets.set(parsedMsg.whoami, aWebSocket);
+              var toSend = {
+                  'opcode': 'joined',
+                  'whoami': parsedMsg.whoami,
+                  'token': parsedMsg.token
+                }
+                , sendPendingRequestsIndex = 0
+                , sendPendingRequestsLength
+                , aSendPendingRequest;
+
+              aWebSocket.send(JSON.stringify(toSend));
+              this.emit('comunicator:user-joined', parsedMsg.whoami);
+              if (sendPendingRequests[parsedMsg.whoami]) {
+
+                sendPendingRequestsLength = sendPendingRequests[parsedMsg.whoami].length;
+                for (sendPendingRequestsIndex = 0; sendPendingRequestsIndex < sendPendingRequestsLength; sendPendingRequestsIndex += 1) {
+
+                  aSendPendingRequest = sendPendingRequests[parsedMsg.whoami][sendPendingRequestsIndex];
+                  if (aSendPendingRequest) {
+
+                    aSendPendingRequest();
+                  } else {
+
+                    /*eslint-disable no-console*/
+                    console.warn('A sending pending request is invalid.');
+                    /*eslint-enable no-console*/
+                  }
+                }
+                sendPendingRequests[parsedMsg.whoami] = [];
+                delete sendPendingRequests[parsedMsg.whoami];
+              } else {
+
+                /*eslint-disable no-console*/
+                console.info('No pending requests for', parsedMsg.whoami, 'user.');
+                /*eslint-enable no-console*/
+              }
+            }
+          });
+        } else
+        /* {'opcode': 'sendTo', 'token': <jwt-token>, 'data': {'whoami': <id>, 'who': <id>, 'what': payload}} */
+        if (parsedMsg.opcode === 'sendTo' &&
+          parsedMsg.data &&
+          parsedMsg.data.who &&
+          parsedMsg.data.whoami &&
+          parsedMsg.data.what) {
+
+          /*eslint-disable no-console*/
+          console.log('-- incoming ---', {
+            'opcode': 'sendTo',
+            'data': {
               'whoami': parsedMsg.data.whoami,
               'who': parsedMsg.data.who,
               'what': parsedMsg.data.what
-            });
-
-            if (!parsedMsg.data.managed) {
-
-              this.sendTo(parsedMsg.data.whoami, parsedMsg.data.who, parsedMsg.data.what);
             }
-          }
-        });
-      } else
-      /* {'whoami': whoami, 'token': <jwt-token>, 'data': {'who': '*', 'what': what}} */
-      if (parsedMsg.opcode === 'broadcast' &&
-        parsedMsg.data &&
-        parsedMsg.data.whoami &&
-        parsedMsg.data.what) {
+          });
+          /*eslint-enable no-console*/
+          jwt.verify(parsedMsg.token, jwtSaltKey, (err) => {
 
-        /*eslint-disable no-console*/
-        console.log('-- incoming ---', {
-          'opcode': 'broadcast',
-          'data': {
-            'whoami': parsedMsg.data.whoami,
-            'who': '*',
-            'what': parsedMsg.data.what
-          }
-        });
-        /*eslint-enable no-console*/
-        jwt.verify(parsedMsg.token, jwtSaltKey, (err) => {
+            if (err) {
 
-          if (err) {
+              /*eslint-disable no-console*/
+              console.error(err);
+              /*eslint-enable no-console*/
+            } else {
 
-            /*eslint-disable no-console*/
-            console.error(err);
-            /*eslint-enable no-console*/
-          } else {
+              this.emit('comunicator:message-arrived', {
+                'whoami': parsedMsg.data.whoami,
+                'who': parsedMsg.data.who,
+                'what': parsedMsg.data.what
+              });
 
-            this.emit('comunicator:message-arrived', {
+              if (!parsedMsg.data.managed) {
+
+                this.sendTo(parsedMsg.data.whoami, parsedMsg.data.who, parsedMsg.data.what);
+              }
+            }
+          });
+        } else
+        /* {'whoami': whoami, 'token': <jwt-token>, 'data': {'who': '*', 'what': what}} */
+        if (parsedMsg.opcode === 'broadcast' &&
+          parsedMsg.data &&
+          parsedMsg.data.whoami &&
+          parsedMsg.data.what) {
+
+          /*eslint-disable no-console*/
+          console.log('-- incoming ---', {
+            'opcode': 'broadcast',
+            'data': {
               'whoami': parsedMsg.data.whoami,
               'who': '*',
               'what': parsedMsg.data.what
-            });
-
-            if (!parsedMsg.data.managed) {
-
-              this.broadcast(parsedMsg.data.whoami, parsedMsg.data.what);
             }
-          }
+          });
+          /*eslint-enable no-console*/
+          jwt.verify(parsedMsg.token, jwtSaltKey, (err) => {
+
+            if (err) {
+
+              /*eslint-disable no-console*/
+              console.error(err);
+              /*eslint-enable no-console*/
+            } else {
+
+              this.emit('comunicator:message-arrived', {
+                'whoami': parsedMsg.data.whoami,
+                'who': '*',
+                'what': parsedMsg.data.what
+              });
+
+              if (!parsedMsg.data.managed) {
+
+                this.broadcast(parsedMsg.data.whoami, parsedMsg.data.what);
+              }
+            }
+          });
+        } else {
+
+          /*eslint-disable no-console*/
+          console.error('Operation not permitted');
+          /*eslint-enable no-console*/
+        }
+      };
+
+      this.on('connection', (socket) => {
+
+        this.on('message', (message) => {
+
+          manageIncomingMessage(message, socket);
         });
-      } else {
+
+        this.on('close', () => {
+
+          websocketClosed(socket);
+        });
+      });
+    }
+
+    broadcast(whoami, what) {
+
+      if (!whoami &&
+        !what) {
 
         /*eslint-disable no-console*/
-        console.error('Operation not permitted');
+        console.error('Mandatory params [whoami] - [what]:', whoami, '-', what);
         /*eslint-enable no-console*/
-      }
-    };
+      } else {
 
-    this.on('connection', (socket) => {
+        var toSend = {
+            'opcode': 'broadcasted',
+            'whoami': whoami,
+            'what': what
+          }
+          , whoamiWebSocket = connectedSockets.get(whoami);
 
-      this.on('message', function onMessageFromWebSocket(message) {
+        for (let aSocket of connectedSockets) {
 
-        manageIncomingMessage(message, socket);
-      });
+          if (aSocket &&
+            aSocket.length === 2 &&
+            aSocket[1] !== whoamiWebSocket &&
+            aSocket[1].readyState === ws.OPEN) {
 
-      this.on('close', function onCloseEvent() {
-
-        websocketClosed(socket);
-      });
-    });
-  }
-
-  broadcast(whoami, what) {
-
-    if (!whoami &&
-      !what) {
-
-      /*eslint-disable no-console*/
-      console.error('Mandatory params [whoami] - [what]:', whoami, '-', what);
-      /*eslint-enable no-console*/
-    } else {
-
-      var toSend = {
-          'opcode': 'broadcasted',
-          'whoami': whoami,
-          'what': what
+            aSocket[1].send(JSON.stringify(toSend));
+          }
         }
-        , whoamiWebSocket = sockets[whoami]
-        , socketsKeys = Object.keys(sockets)
-        , socketIndex
-        , aSocketKey
-        , aWebSocket;
+      }
+    }
 
-      for (socketIndex = 0; socketIndex < socketsKeys.length; socketIndex += 1) {
+    sendTo(whoami, who, what) {
 
-        aSocketKey = socketsKeys[socketIndex];
-        aWebSocket = sockets[aSocketKey];
-        if (aWebSocket.readyState === ws.OPEN &&
-          whoamiWebSocket !== aWebSocket) {
+      if (!whoami &&
+        !who &&
+        !what) {
+
+        /*eslint-disable no-console*/
+        console.error('Mandatory params [whoami] - [who] - [what]:', whoami, '-', who, '-', what);
+        /*eslint-enable no-console*/
+      } else {
+
+        var toSend = {
+            'opcode': 'sent',
+            'whoami': whoami,
+            'who': who,
+            'what': what
+          }
+          , aWebSocket = connectedSockets.get(who);
+
+        if (!!aWebSocket &&
+          aWebSocket.readyState === ws.OPEN) {
 
           aWebSocket.send(JSON.stringify(toSend));
+        } else {
+
+          if (!sendPendingRequests[who]) {
+
+            sendPendingRequests[who] = [];
+          }
+          sendPendingRequests[who].push(this.sendTo.bind(this, whoami, who, what));
+          /*eslint-disable no-console*/
+          console.error('User', who, ' isn\'t here at the moment...');
+          /*eslint-enable no-console*/
         }
       }
     }
-  }
 
-  sendTo(whoami, who, what) {
+    isUserPresent(who) {
 
-    if (!whoami &&
-      !who &&
-      !what) {
+      if (!who) {
 
-      /*eslint-disable no-console*/
-      console.error('Mandatory params [whoami] - [who] - [what]:', whoami, '-', who, '-', what);
-      /*eslint-enable no-console*/
-    } else {
-
-      var toSend = {
-          'opcode': 'sent',
-          'whoami': whoami,
-          'who': who,
-          'what': what
-        }
-        , aWebSocket = sockets[who];
-
-      if (!!aWebSocket &&
-        aWebSocket.readyState === ws.OPEN) {
-
-        aWebSocket.send(JSON.stringify(toSend));
-      } else {
-
-        if (!sendPendingRequests[who]) {
-
-          sendPendingRequests[who] = [];
-        }
-        sendPendingRequests[who].push(this.sendTo.bind(undefined, whoami, who, what));
-        /*eslint-disable no-console*/
-        console.error('User', who, ' isn\'t here at the moment...');
-        /*eslint-enable no-console*/
+        return false;
       }
+      return connectedSockets.has(who);
     }
   }
 
-  isUserPresent(who) {
-
-    if (!who) {
-
-      return false;
-    }
-    return sockets[who] !== undefined;
-  }
-}
-
-module.exports = Comunicator;
+  module.exports = Comunicator;
+}(require, module, process, console));
