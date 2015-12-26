@@ -1,6 +1,7 @@
 {
+  "esnext": true,
   "validateIndentation": 2,
-  "disallowAnonymousFunctions": true,
+  "disallowAnonymousFunctions": false,
   "disallowCapitalizedComments": true,
   "disallowDanglingUnderscores": true,
   "disallowEmptyBlocks": true,
@@ -44,7 +45,7 @@
   "requireLineBreakAfterVariableAssignment": true,
   "requireLineFeedAtFileEnd": true,
   "requireMultipleVarDecl": true,
-  "requireNamedUnassignedFunctions": true,
+  "requireNamedUnassignedFunctions": false,
   "requireOperatorBeforeLineBreak": [
       "?",
       "=",
@@ -70,7 +71,10 @@
   "requireSpaceBetweenArguments": true,
   "requireSpacesInAnonymousFunctionExpression": {
     "beforeOpeningRoundBrace": true,
-    "beforeOpeningCurlyBrace": true
+    "beforeOpeningCurlyBrace": true,
+    "allExcept": [
+      "shorthand"
+    ]
   },
   "requireSpacesInForStatement": true,
   "requireSpacesInFunctionDeclaration": {
