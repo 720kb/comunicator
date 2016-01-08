@@ -31,7 +31,7 @@
         });
       });
 
-      const websocketClosed = function websocketClosed(aWebSocket) {
+      const websocketClosed = aWebSocket => {
 
         for (let aSocket of connectedSockets) {
 
@@ -50,7 +50,7 @@
           }
         }
       }
-      , manageIncomingMessage = function manageIncomingMessage(message, aWebSocket) {
+      , manageIncomingMessage = (message, aWebSocket) => {
 
         var parsedMsg = JSON.parse(message);
         /* {'opcode': 'join', 'whoami': <id>, 'token': <jwt-token>} */
@@ -196,12 +196,12 @@
 
       this.on('connection', (socket) => {
 
-        this.on('message', (message) => {
+        socket.on('message', (message) => {
 
           manageIncomingMessage(message, socket);
         });
 
-        this.on('close', () => {
+        socket.on('close', () => {
 
           websocketClosed(socket);
         });
