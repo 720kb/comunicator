@@ -249,7 +249,18 @@
       if (websocketUrl) {
         var that = this;
 
-        this.websocket = new window.WebSocket(websocketUrl);
+        if (typeof websocketUrl === 'string') {
+
+          this.websocket = new window.WebSocket(websocketUrl);
+        } else if (typeof websocketUrl === 'object' &&
+          websocketUrl instanceof window.WebSocket) {
+
+          this.websocket = websocketUrl;
+        } else {
+
+          throw new Error('websocket parameter passed is neither a string nor a WebSocket object');
+        }
+
         this.websocket.onopen = function onWebSocketOpening() {
 
           window.console.info('Trasport', this, 'opened.');

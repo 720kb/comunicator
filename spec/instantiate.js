@@ -30,7 +30,6 @@
       done();
     });
 
-
     it('should instantiate the comunicator', done => {
 
       let theComunicator = new Comunicator(salt);
