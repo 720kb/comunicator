@@ -2,13 +2,10 @@
 (function withGulp(require) {
   'use strict';
 
-  const gulp = require('gulp')
-    , umd = require('gulp-umd');
+  const gulp = require('gulp');
 
   gulp.task('default', () => {
 
-    return gulp.src('src/!(node)/*.js')
-      .pipe(umd())
-      .pipe(gulp.dest('lib'));
+    console.info('ding!');
   });
 }(require));
