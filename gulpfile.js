@@ -1,11 +1,6 @@
 /*global require*/
-(function withGulp(require) {
+(function withGulp() {
   'use strict';
 
-  const gulp = require('gulp');
-
-  gulp.task('default', () => {
-
-    console.info('ding!');
-  });
-}(require));
+  require('require-dir')('conf/tasks');
+}());
