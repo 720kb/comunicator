@@ -14,7 +14,6 @@
   "nonew": true,
   "notypeof": true,
   "singleGroups": true,
-  "strict": true,
   "undef": true,
   "unused": true,
   "plusplus": true

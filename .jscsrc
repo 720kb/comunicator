@@ -1,8 +1,8 @@
 {
   "esnext": true,
+  "excludeFiles": [],
   "validateIndentation": 2,
   "disallowAnonymousFunctions": false,
-  "disallowCapitalizedComments": true,
   "disallowDanglingUnderscores": true,
   "disallowEmptyBlocks": true,
   "disallowFunctionDeclarations": true,
