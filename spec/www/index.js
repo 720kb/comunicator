@@ -9,7 +9,7 @@
   .config(['ComunicatorProvider',
   function configFunction(ComunicatorProvider) {
 
-    ComunicatorProvider.setComunicatorServerURL('ws://localhost:9876');
+    ComunicatorProvider.setComunicatorServerURL('ws://localhost:3000');
   }])
 
   .controller('TestController', ['$rootScope', '$scope', '$http', '$log', 'Comunicator',

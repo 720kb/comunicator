@@ -9,11 +9,18 @@
     , path = require('path')
     , publicFolder = path.resolve(__dirname, '', 'www');
 
-  require('../src/node/comunicator')(salt);
   server.connection({
     'host': '0.0.0.0',
     'port': 3000
   });
+
+  require('../src/node/comunicator')({
+    'server': server.connections[0].listener
+  }, salt);
+  /*{
+    'host': comunicatorHost,
+    'port': comunicatorPort
+  }*/
 
   server.route({
     'method': 'GET',

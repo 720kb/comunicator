@@ -5,24 +5,14 @@
   var ws = require('ws')
     , jwt = require('jsonwebtoken')
     , EventEmitter = require('events').EventEmitter
-    , comunicatorHost = process.env.COMUNICATOR_HOST || '0.0.0.0'
-    , comunicatorPort = process.env.COMUNICATOR_PORT || 9876
     , sockets = {}
     , WebSocketServer = ws.Server
-    , wss = new WebSocketServer({
-        'host': comunicatorHost,
-        'port': comunicatorPort
-      }, function comunicatorWebSocketUpAndRunning() {
-
-        /*eslint-disable no-console*/
-        console.info('Server listen websocket connections on host - port:', comunicatorHost, '-', comunicatorPort);
-        /*eslint-enable no-console*/
-      })
     , sendPendingRequests = {};
 
-  module.exports = function toExport(jwtSaltKey) {
+  module.exports = function toExport(websocketConfs, jwtSaltKey) {
 
-    var eventEmitter = new EventEmitter()
+    var wss = new WebSocketServer(websocketConfs)
+      , eventEmitter = new EventEmitter()
       , broadcast = function broadcast(whoami, what) {
 
         if (!whoami &&
