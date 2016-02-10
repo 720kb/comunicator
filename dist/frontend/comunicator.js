@@ -47,6 +47,24 @@
     }
   }
 
+  var _createClass = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];
+        descriptor.enumerable = descriptor.enumerable || false;
+        descriptor.configurable = true;
+        if ("value" in descriptor) descriptor.writable = true;
+        Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }
+
+    return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);
+      if (staticProps) defineProperties(Constructor, staticProps);
+      return Constructor;
+    };
+  }();
+
   function _possibleConstructorReturn(self, call) {
     if (!self) {
       throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
@@ -71,64 +89,6 @@
     if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
 
-  var WebSocketCtor$2 = undefined;
-
-  try {
-
-    WebSocketCtor$2 = _ws.WebSocket;
-    if (!WebSocketCtor$2) {
-
-      WebSocketCtor$2 = window.WebSocket;
-    }
-  } catch (err) {
-
-    WebSocketCtor$2 = window.WebSocket;
-  }
-
-  var userManagement = function userManagement(_ref) {
-    var whoReallyAmI = _ref.whoReallyAmI;
-    var reallyToken = _ref.reallyToken;
-    var websocket = _ref.websocket;
-    return {
-      'userIsPresent': function userIsPresent(whoami, token) {
-
-        if (whoReallyAmI !== whoami || reallyToken !== token) {
-
-          if (whoReallyAmI && reallyToken) {
-
-            /*whoReallyAmI = whoami;
-            reallyToken = token;
-            this.doJoin();*/
-            return {
-              whoami: whoami,
-              token: token
-            };
-          }
-
-          throw new Error('User identification datas missing.');
-        } else {
-
-          window.console.info('User is already identified.');
-        }
-      },
-      'whoAmI': function whoAmI() {
-
-        return whoReallyAmI;
-      },
-      'exit': function exit() {
-
-        if (whoReallyAmI && reallyToken && websocket.readyState === WebSocketCtor$2.OPEN) {
-
-          websocket.close();
-          return {
-            whoReallyAmI: whoReallyAmI,
-            reallyToken: reallyToken
-          };
-        }
-      }
-    };
-  };
-
   var WebSocketCtor$1 = undefined;
 
   try {
@@ -143,11 +103,11 @@
     WebSocketCtor$1 = window.WebSocket;
   }
 
-  var sendMessageFactory = function sendMessageFactory(_ref2) {
-    var reallyToken = _ref2.reallyToken;
-    var websocket = _ref2.websocket;
-    var _ref2$queue = _ref2.queue;
-    var queue = _ref2$queue === undefined ? [] : _ref2$queue;
+  var sendMessageFactory = function sendMessageFactory(_ref) {
+    var reallyToken = _ref.reallyToken;
+    var websocket = _ref.websocket;
+    var _ref$queue = _ref.queue;
+    var queue = _ref$queue === undefined ? [] : _ref$queue;
     return {
       'sendMessage': function sendMessage(opcode, data) {
         var messageToSend = JSON.stringify({
@@ -167,9 +127,9 @@
     };
   };
 
-  var sender = function sender(_ref3) {
-    var whoReallyAmI = _ref3.whoReallyAmI;
-    var websocket = _ref3.websocket;
+  var sender = function sender(_ref2) {
+    var whoReallyAmI = _ref2.whoReallyAmI;
+    var websocket = _ref2.websocket;
     return {
       'sendTo': function sendTo(who, what, managed) {
 
@@ -195,9 +155,9 @@
     };
   };
 
-  var broadcaster = function broadcaster(_ref4) {
-    var whoReallyAmI = _ref4.whoReallyAmI;
-    var websocket = _ref4.websocket;
+  var broadcaster = function broadcaster(_ref3) {
+    var whoReallyAmI = _ref3.whoReallyAmI;
+    var websocket = _ref3.websocket;
     return {
       'broadcast': function broadcast(what, managed) {
 
@@ -229,6 +189,7 @@
     'websocket': undefined,
     'queue': []
   };
+  var doJoinSym = Symbol('doJoin');
   var WebSocketCtor = undefined;
 
   try {
@@ -249,7 +210,7 @@
     function Comunicator(websocketUrl) {
       _classCallCheck(this, Comunicator);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(Comunicator).call(this, function (observer) {
+      var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Comunicator).call(this, function (observer) {
 
         if (websocketUrl) {
 
@@ -328,12 +289,67 @@
           });
         }
       }));
+
+      _this[doJoinSym] = function () {
+        var joinMessage = JSON.stringify({
+          'opcode': 'join',
+          'whoami': comunicatorState.whoReallyAmI,
+          'token': comunicatorState.reallyToken
+        });
+
+        if (comunicatorState.websocket.readyState === WebSocketCtor.OPEN) {
+
+          comunicatorState.websocket.push(joinMessage);
+        } else {
+
+          comunicatorState.queue.push(joinMessage);
+        }
+      };
+      return _this;
     }
+
+    _createClass(Comunicator, [{
+      key: 'userIsPresent',
+      value: function userIsPresent(whoami, token) {
+
+        if (comunicatorState.whoReallyAmI !== whoami || comunicatorState.reallyToken !== token) {
+
+          if (whoami && token) {
+
+            comunicatorState.whoReallyAmI = whoami;
+            comunicatorState.reallyToken = token;
+            this[doJoinSym]();
+          }
+
+          throw new Error('User identification datas missing.');
+        } else {
+
+          window.console.info('User is already identified.');
+        }
+      }
+    }, {
+      key: 'exit',
+      value: function exit() {
+
+        if (comunicatorState.whoReallyAmI && comunicatorState.reallyToken && comunicatorState.websocket.readyState === WebSocketCtor.OPEN) {
+
+          comunicatorState.websocket.close();
+          comunicatorState.whoReallyAmI = undefined;
+          comunicatorState.reallyToken = undefined;
+        }
+      }
+    }, {
+      key: 'whoAmI',
+      get: function get() {
+
+        return comunicatorState.whoReallyAmI;
+      }
+    }]);
 
     return Comunicator;
   }(_Rx2.default.Observable);
 
-  Object.assign(Comunicator.prototype, broadcaster(comunicatorState), sender(comunicatorState), userManagement(comunicatorState));
+  Object.assign(Comunicator.prototype, broadcaster(comunicatorState), sender(comunicatorState));
 
   exports.default = Comunicator;
 });
