@@ -1,57 +1,59 @@
 /*global __dirname,require,console*/
-(function withModule(__dirname, require, console) {
+(function withModule() {
   'use strict';
 
-  var salt = 'kjwf788fu38l102ijllwefliuh98hegfj98usjsjsnwe%&kjnwef$kjwnflllyyyuii'
+  const salt = 'kjwf788fu38l102ijllwefliuh98hegfj98usjsjsnwe%&kjnwef$kjwnflllyyyuii'
+    , randomMagnitude = 100000000
     , jwt = require('jsonwebtoken')
     , Hapi = require('hapi')
+    , Inert = require('inert')
     , server = new Hapi.Server()
     , path = require('path')
-    , publicFolder = path.resolve(__dirname, '', 'www');
+    , publicFolder = path.resolve(__dirname, '', 'www')
+    , Comunicator = require('../dist/node/comunicator');
 
   server.connection({
     'host': '0.0.0.0',
     'port': 3000
   });
+  server.register(Inert, () => {
+    const comunicator = new Comunicator({
+      'host': '0.0.0.0',
+      'port': 3001
+    }, salt);
 
-  require('../src/node/comunicator')({
-    'server': server.connections[0].listener
-  }, salt);
-  /*{
-    'host': comunicatorHost,
-    'port': comunicatorPort
-  }*/
+    comunicator.forEach(console.log);
+    server.route({
+      'method': 'GET',
+      'path': '/token',
+      'handler': (request, reply) => {
 
-  server.route({
-    'method': 'GET',
-    'path': '/token',
-    'handler': function handler(request, reply) {
+        const userID = parseInt(Math.random() * randomMagnitude, 10)
+          , token = jwt.sign({
+          'user': userID
+        }, salt);
 
-      var userID = parseInt(Math.random() * 100000000, 10)
-        , token = jwt.sign({
-        'user': userID
-      }, salt);
-
-      reply({
-        'token': token,
-        'userID': userID
-      });
-    }
-  });
-
-  server.route({
-    'method': 'GET',
-    'path': '/{param*}',
-    'handler': {
-      'directory': {
-        'path': publicFolder,
-        'listing': false
+        reply({
+          token,
+          userID
+        });
       }
-    }
-  });
+    });
 
-  server.start(function onStart() {
+    server.route({
+      'method': 'GET',
+      'path': '/{param*}',
+      'handler': {
+        'directory': {
+          'path': publicFolder,
+          'listing': false
+        }
+      }
+    });
 
-    console.log('Server running at:', server.info.uri);
+    server.start(() => {
+
+      console.log('Server running at:', server.info.uri);
+    });
   });
-}(__dirname, require, console));
+}());

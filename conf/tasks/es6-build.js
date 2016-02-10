@@ -3,49 +3,52 @@
   'use strict';
 
   const gulp = require('gulp')
-    , changed = require('gulp-changed')
-    , plumber = require('gulp-plumber')
-    , babel = require('gulp-babel')
-    , rename = require('gulp-rename')
     , runSequence = require('run-sequence')
+    , plumber = require('gulp-plumber')
+    , rollup = require('gulp-rollup')
+    , babel = require('gulp-babel')
+    , sourcemaps = require('gulp-sourcemaps')
     , paths = require('../paths');
 
   gulp.task('es6-build', ['clean'], done => {
 
-    return runSequence(['es6-build-js', 'es6-build-ng'], done);
+    runSequence(['es6-build-node', 'es6-build-frontend'],
+      done);
   });
 
-  gulp.task('es6-build-js', () => {
+  gulp.task('es6-build-node', () => {
 
-    return gulp.src(`${paths.lib}${paths.files.unminified.js}`)
+    return gulp.src(`${paths.lib}node/**/*.js`)
       .pipe(plumber())
-      .pipe(changed(`${paths.tmp}`, {
-        'extension': '.js'
+      .pipe(babel({
+        'presets': [
+          'es2015'
+        ],
+        'moduleIds': true
       }))
-      .pipe(babel())
-      .pipe(rename(path => {
-
-        paths.dirname = '';
-        path.basename = paths.files.minified.js;
-        return path;
-      }))
-      .pipe(gulp.dest(`${paths.tmp}`));
+      .pipe(gulp.dest(`${paths.tmp}node`));
   });
 
-  gulp.task('es6-build-ng', () => {
+  gulp.task('es6-build-frontend', () => {
 
-    return gulp.src(`${paths.lib}${paths.files.unminified.ng}`)
+    return gulp.src(`${paths.lib}frontend/*.js`, {
+        'read': false
+      })
       .pipe(plumber())
-      .pipe(changed(`${paths.tmp}`, {
-        'extension': '.js'
+      .pipe(rollup({
+        // any option supported by rollup can be set here, including sourceMap
+        'sourceMap': true
       }))
-      .pipe(babel())
-      .pipe(rename(path => {
-
-        paths.dirname = '';
-        path.basename = paths.files.minified.ng;
-        return path;
+      .pipe(babel({
+        'presets': [
+          'es2015'
+        ],
+        'plugins': [
+          'transform-es2015-modules-umd'
+        ],
+        'moduleIds': true
       }))
-      .pipe(gulp.dest(`${paths.tmp}`));
+      .pipe(sourcemaps.write('.')) // this only works if the sourceMap option is true
+      .pipe(gulp.dest(`${paths.tmp}frontend`));
   });
 }());

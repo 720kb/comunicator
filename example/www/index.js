@@ -1,5 +1,5 @@
 /*global angular*/
-(function withAngular(angular) {
+(function withAngular() {
   'use strict';
 
   angular.module('720kb.test', [
@@ -9,23 +9,23 @@
   .config(['ComunicatorProvider',
   function configFunction(ComunicatorProvider) {
 
-    ComunicatorProvider.setComunicatorServerURL('ws://localhost:3000');
+    ComunicatorProvider.setComunicatorServerURL('ws://localhost:3001');
   }])
 
   .controller('TestController', ['$rootScope', '$scope', '$http', '$log', 'Comunicator',
   function TestController($rootScope, $scope, $http, $log, Comunicator) {
 
-    var unregisterOnComunicatorJoin
+    let unregisterOnComunicatorJoin
       , unregisterOnComunicatorToMe
       , unregisterOnComunicatorToAll;
 
     $http.get('/token')
-      .success(function onSuccess(data) {
+      .success(data => {
 
         $scope.token = data.token;
         $scope.userID = data.userID;
       })
-      .error(function onError(data) {
+      .error(data => {
 
         $log.debug(data);
       });
@@ -42,7 +42,7 @@
 
       $scope.resetFlags();
 
-      Comunicator.then(function onComunicator(comunicator) {
+      Comunicator.then(comunicator => {
 
         comunicator.userIsPresent($scope.userID, $scope.token);
       });
@@ -53,7 +53,7 @@
       $scope.running = true;
       $scope.resetFlags();
 
-      Comunicator.then(function onComunicator(comunicator) {
+      Comunicator.then(comunicator => {
 
         comunicator.broadcast({
           'message': $scope.what
@@ -66,7 +66,7 @@
       $scope.running = true;
       $scope.resetFlags();
 
-      Comunicator.then(function onComunicator(comunicator) {
+      Comunicator.then(comunicator => {
 
         comunicator.sendTo($scope.userID, {
           'message': $scope.what
@@ -74,27 +74,27 @@
       });
     };
 
-    unregisterOnComunicatorJoin = $rootScope.$on('comunicator:joined', function onComunicatorJoined(eventInfo, data) {
+    unregisterOnComunicatorJoin = $rootScope.$on('comunicator:joined', (eventInfo, data) => {
 
       $scope.running = false;
       $scope.eventData = data;
       $scope.message = 'Connected to comunicator';
     });
-    unregisterOnComunicatorToMe = $rootScope.$on('comunicator:to-me', function onComunicatorToMe(eventInfo, data) {
+    unregisterOnComunicatorToMe = $rootScope.$on('comunicator:to-me', (eventInfo, data) => {
 
       $scope.running = false;
       $scope.eventData = data;
       $scope.message = 'A message from comunicator, for you.';
     });
 
-    unregisterOnComunicatorToAll = $rootScope.$on('comunicator:to-all', function onComunicatorToAll(eventInfo, data) {
+    unregisterOnComunicatorToAll = $rootScope.$on('comunicator:to-all', (eventInfo, data) => {
 
       $scope.running = false;
       $scope.eventData = data;
       $scope.message = 'A message from comunicator, for all the people.';
     });
 
-    $scope.$on('$destroy', function destroyScope() {
+    $scope.$on('$destroy', () => {
 
       unregisterOnComunicatorToMe();
       unregisterOnComunicatorJoin();

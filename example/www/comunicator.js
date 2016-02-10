@@ -1,1 +1,1 @@
-../../src/js/comunicator.js
+../../dist/frontend/comunicator.js

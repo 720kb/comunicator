@@ -10,7 +10,7 @@
 
   gulp.task('annotate', ['es6-build'], () => {
 
-    return gulp.src(`${paths.tmp}${paths.files.minified.ng}.js`)
+    return gulp.src(`${paths.tmp}**/*.js`)
       .pipe(plumber())
       .pipe(ngAnnotate({
         'gulpWarnings': false

@@ -1,5 +1,5 @@
 /*global module,require*/
-(function testing(module, require) {
+(function testing() {
   'use strict';
 
   const code = require('code')
@@ -9,7 +9,7 @@
     , before = lab.before
     , expect = code.expect
     , salt = 'kjwf788fu38l102ijllwefliuh98hegfj98usjsjsnwe%&kjnwef$kjwnflllyyyuii'
-    , Comunicator = require('../src/node/comunicator');
+    , Comunicator = require('../dist/node/comunicator');
 
   describe('comunicator is correctly instantiated', () => {
     let comunicatorMethods;
@@ -20,34 +20,38 @@
       done();
     });
 
-    it('should Comunicator class must have declared methods', done => {
+    it('should comunicator class must have declared methods', done => {
 
       expect(comunicatorMethods).to.only.include([
         'constructor',
         'broadcast',
         'sendTo',
+        'close',
         'isUserPresent']);
       done();
     });
 
     it('should instantiate the comunicator', done => {
-
-      let theComunicator = new Comunicator(salt);
+      const theComunicator = new Comunicator({
+        'host': 'localhost',
+        'port': 3000
+      }, salt);
 
       expect(theComunicator).to.not.be.undefined();
       expect(theComunicator).to.be.an.object();
       expect(theComunicator).to.be.an.instanceof(Comunicator);
 
-      comunicatorMethods.forEach((anElement) => {
+      comunicatorMethods.forEach(anElement => {
 
         expect(theComunicator[anElement]).to.be.a.function();
       });
 
       done();
     });
+
   });
 
   module.exports = {
-    'lab': lab
+    lab
   };
-}(module, require));
+}());

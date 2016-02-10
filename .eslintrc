@@ -3,8 +3,10 @@
     "es6": true
   },
   "ecmaFeatures": {
+    "modules": true,
     "regexYFlag": true,
-    "regexUFlag": true
+    "regexUFlag": true,
+    "destructuring": true
   },
   "rules": {
     "comma-dangle": [
@@ -139,7 +141,6 @@
     ],
     "no-undef-init": 2,
     "no-undef": 2,
-    "no-undefined": 2,
     "no-unused-vars": [
       2,
       {

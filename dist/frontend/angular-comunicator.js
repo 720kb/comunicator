@@ -1,0 +1,395 @@
+/**
+* comunicator
+* 2.2.4
+*
+* The 720kb notifier api (atm it uses websockets)
+* https://github.com/720kb/comunicator
+*
+* MIT license
+* Wed Feb 10 2016
+*/
+(function (global, factory) {
+  if (typeof define === "function" && define.amd) {
+    define('angular-comunicator', ['angular', 'rxjs/Rx', 'ws'], factory);
+  } else if (typeof exports !== "undefined") {
+    factory(require('angular'), require('rxjs/Rx'), require('ws'));
+  } else {
+    var mod = {
+      exports: {}
+    };
+    factory(global.angular, global.Rx, global.ws);
+    global.angularComunicator = mod.exports;
+  }
+})(this, function (_angular, _Rx, _ws) {
+  'use strict';
+
+  var _angular2 = _interopRequireDefault(_angular);
+
+  var _Rx2 = _interopRequireDefault(_Rx);
+
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      default: obj
+    };
+  }
+
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
+    return typeof obj;
+  } : function (obj) {
+    return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj;
+  };
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _possibleConstructorReturn(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return call && (typeof call === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    }
+
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  }
+
+  var WebSocketCtor$2 = undefined;
+
+  try {
+
+    WebSocketCtor$2 = _ws.WebSocket;
+    if (!WebSocketCtor$2) {
+
+      WebSocketCtor$2 = window.WebSocket;
+    }
+  } catch (err) {
+
+    WebSocketCtor$2 = window.WebSocket;
+  }
+
+  var userManagement = function userManagement(_ref) {
+    var whoReallyAmI = _ref.whoReallyAmI;
+    var reallyToken = _ref.reallyToken;
+    var websocket = _ref.websocket;
+    return {
+      'userIsPresent': function userIsPresent(whoami, token) {
+
+        if (whoReallyAmI !== whoami || reallyToken !== token) {
+
+          if (whoReallyAmI && reallyToken) {
+
+            /*whoReallyAmI = whoami;
+            reallyToken = token;
+            this.doJoin();*/
+            return {
+              whoami: whoami,
+              token: token
+            };
+          }
+
+          throw new Error('User identification datas missing.');
+        } else {
+
+          window.console.info('User is already identified.');
+        }
+      },
+      'whoAmI': function whoAmI() {
+
+        return whoReallyAmI;
+      },
+      'exit': function exit() {
+
+        if (whoReallyAmI && reallyToken && websocket.readyState === WebSocketCtor$2.OPEN) {
+
+          websocket.close();
+          return {
+            whoReallyAmI: whoReallyAmI,
+            reallyToken: reallyToken
+          };
+        }
+      }
+    };
+  };
+
+  var WebSocketCtor$1 = undefined;
+
+  try {
+
+    WebSocketCtor$1 = _ws.WebSocket;
+    if (!WebSocketCtor$1) {
+
+      WebSocketCtor$1 = window.WebSocket;
+    }
+  } catch (err) {
+
+    WebSocketCtor$1 = window.WebSocket;
+  }
+
+  var sendMessageFactory = function sendMessageFactory(_ref2) {
+    var reallyToken = _ref2.reallyToken;
+    var websocket = _ref2.websocket;
+    var _ref2$queue = _ref2.queue;
+    var queue = _ref2$queue === undefined ? [] : _ref2$queue;
+    return {
+      'sendMessage': function sendMessage(opcode, data) {
+        var messageToSend = JSON.stringify({
+          opcode: opcode,
+          'token': reallyToken,
+          data: data
+        });
+
+        if (websocket.readyState === WebSocketCtor$1.OPEN) {
+
+          websocket.push(messageToSend);
+        } else {
+
+          queue.push(messageToSend);
+        }
+      }
+    };
+  };
+
+  var sender = function sender(_ref3) {
+    var whoReallyAmI = _ref3.whoReallyAmI;
+    var websocket = _ref3.websocket;
+    return {
+      'sendTo': function sendTo(who, what, managed) {
+
+        if (whoReallyAmI && websocket) {
+
+          var toSend = {
+            'whoami': whoReallyAmI,
+            who: who,
+            what: what
+          };
+
+          if (managed) {
+
+            toSend.managed = true;
+          }
+
+          websocket.send('sendTo', toSend);
+        } else {
+
+          throw new Error('User identification required');
+        }
+      }
+    };
+  };
+
+  var broadcaster = function broadcaster(_ref4) {
+    var whoReallyAmI = _ref4.whoReallyAmI;
+    var websocket = _ref4.websocket;
+    return {
+      'broadcast': function broadcast(what, managed) {
+
+        if (whoReallyAmI && websocket) {
+
+          var toSend = {
+            'whoami': whoReallyAmI,
+            'who': '*',
+            what: what
+          };
+
+          if (managed) {
+
+            toSend.managed = true;
+          }
+
+          websocket.send('broadcast', toSend);
+        } else {
+
+          throw new Error('User identification required');
+        }
+      }
+    };
+  };
+
+  var comunicatorState = {
+    'whoReallyAmI': undefined,
+    'reallyToken': undefined,
+    'websocket': undefined,
+    'queue': []
+  };
+  var WebSocketCtor = undefined;
+
+  try {
+
+    WebSocketCtor = _ws.WebSocket;
+    if (!WebSocketCtor) {
+
+      WebSocketCtor = window.WebSocket;
+    }
+  } catch (err) {
+
+    WebSocketCtor = window.WebSocket;
+  }
+
+  var Comunicator = function (_Rx$Observable) {
+    _inherits(Comunicator, _Rx$Observable);
+
+    function Comunicator(websocketUrl) {
+      _classCallCheck(this, Comunicator);
+
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(Comunicator).call(this, function (observer) {
+
+        if (websocketUrl) {
+
+          if (typeof websocketUrl === 'string') {
+
+            comunicatorState.websocket = new WebSocketCtor(websocketUrl);
+          } else if ((typeof websocketUrl === 'undefined' ? 'undefined' : _typeof(websocketUrl)) === 'object' && websocketUrl instanceof WebSocketCtor) {
+
+            comunicatorState.websocket = websocketUrl;
+          } else {
+
+            observer.error({
+              'type': 'error',
+              'cause': 'websocket parameter passed is neither a string nor a WebSocket object'
+            });
+          }
+
+          observer.next({
+            'type': 'ready'
+          });
+
+          comunicatorState.websocket.onopen = function (openEvent) {
+
+            observer.next({
+              'type': 'open',
+              'whoami': openEvent.target
+            });
+
+            while (comunicatorState.queue.length > 0 && comunicatorState.websocket.readyState === WebSocketCtor.OPEN) {
+
+              comunicatorState.websocket.push(comunicatorState.queue.shift());
+            }
+          };
+
+          comunicatorState.websocket.onmessage = function (event) {
+            var parsedMsg = window.JSON.parse(event.data);
+
+            if (parsedMsg.opcode === 'joined') {
+
+              observer.next({
+                'type': 'joined',
+                'value': parsedMsg
+              });
+            } else if (parsedMsg.opcode === 'sent') {
+
+              observer.next({
+                'type': 'to-me',
+                'value': parsedMsg
+              });
+            } else if (parsedMsg.opcode === 'broadcasted') {
+
+              observer.next({
+                'type': 'to-all',
+                'value': parsedMsg
+              });
+            }
+          };
+          comunicatorState.websocket.onclose = function () {
+
+            if (comunicatorState.whoReallyAmI && comunicatorState.reallyToken) {
+
+              observer.next({
+                'type': 'closed'
+              });
+              observer.complete();
+            }
+          };
+
+          comunicatorState.websocket.push = comunicatorState.websocket.send;
+          comunicatorState.websocket.send = sendMessageFactory(comunicatorState);
+        } else {
+
+          observer.error({
+            'type': 'error',
+            'cause': 'Please provide a valid URL.'
+          });
+        }
+      }));
+    }
+
+    return Comunicator;
+  }(_Rx2.default.Observable);
+
+  Object.assign(Comunicator.prototype, broadcaster(comunicatorState), sender(comunicatorState), userManagement(comunicatorState));
+
+  _angular2.default.module('720kb.comunicator', []).provider('Comunicator', function () {
+    var comunicator = undefined;
+    var initComunicator = function initComunicator(url) {
+
+      comunicator = new Comunicator(url);
+      return comunicator;
+    };
+
+    return {
+      'setComunicatorServerURL': initComunicator,
+      '$get': /*@ngInject*/["$rootScope", function instantiateProvider($rootScope) {
+
+        comunicator.forEach(function (element) {
+
+          $rootScope.$apply(function (scope) {
+
+            scope.$emit(element);
+          });
+        });
+        /*const arrivedJoined = () => {
+           $rootScope.$apply(scope => {
+             scope.$emit('comunicator:joined');
+          });
+           $log.debug('comunicator:joined dispatched');
+        }
+        , arrivedToMe = event => {
+           $rootScope.$apply(scope => {
+             scope.$emit('comunicator:to-me', event.detail);
+          });
+           $log.debug('comunicator:to-me dispatched');
+        }
+        , arrivedToAll = event => {
+           $rootScope.$apply(scope => {
+             scope.$emit('comunicator:to-all', event.detail);
+          });
+           $log.debug('comunicator:to-all dispatched');
+        }
+        , arrivedClosed = () => {
+           $rootScope.$apply(scope => {
+             scope.$emit('comunicator:closed');
+          });
+           $log.debug('comunicator:closed dispatched');
+        };
+         $window.addEventListener('comunicator:joined', arrivedJoined, false);
+        $window.addEventListener('comunicator:to-me', arrivedToMe, false);
+        $window.addEventListener('comunicator:to-all', arrivedToAll, false);
+        $window.addEventListener('comunicator:closed', arrivedClosed, false);
+         $rootScope.$on('$destroy', () => {
+           $window.removeEventListener('comunicator:joined', arrivedJoined, false);
+          $window.removeEventListener('comunicator:to-me', arrivedToMe, false);
+          $window.removeEventListener('comunicator:to-all', arrivedToAll, false);
+          $window.removeEventListener('comunicator:closed', arrivedClosed, false);
+        });*/
+
+        return comunicator;
+      }]
+    };
+  });
+});
+//# sourceMappingURL=angular-comunicator.js.map

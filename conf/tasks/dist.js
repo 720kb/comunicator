@@ -3,14 +3,11 @@
   'use strict';
 
   const gulp = require('gulp')
-    , del = require('del')
     , paths = require('../paths');
 
-  gulp.task('clean', () => {
+  gulp.task('dist', ['annotate'], () => {
 
-    return del([
-      paths.tmp,
-      paths.dist
-    ]);
+    return gulp.src(`${paths.tmp}/**/*.js`)
+      .pipe(gulp.dest(`${paths.dist}`));
   });
 }());

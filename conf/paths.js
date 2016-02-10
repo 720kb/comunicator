@@ -19,17 +19,8 @@
       banner,
       'tmp': '.tmp/',
       'lib': 'lib/',
-      'output': 'dist/',
-      'files': {
-        'unminified': {
-          'js': 'js/comunicator.js',
-          'ng': 'ng/comunicator.js'
-        },
-        'minified': {
-          'js': 'comunicator',
-          'ng': 'angular-comunicator'
-        }
-      }
+      'dist': 'dist/',
+      'spec': 'spec/**/*.js'
     };
 
   module.exports = paths;
