@@ -1,3 +1,11 @@
+'use strict';
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 /**
 * comunicator
 * 2.2.4
@@ -6,27 +14,16 @@
 * https://github.com/720kb/comunicator
 *
 * MIT license
-* Wed Feb 10 2016
+* Thu Feb 25 2016
 */
-'use strict';
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
 /*global require,module*/
 var ws = require('ws'),
     jwt = require('jsonwebtoken'),
     Rx = require('rxjs/Rx'),
+    user = require('./user'),
+    sendTo = require('./send-to'),
+    broadcast = require('./broadcast'),
     debug = require('debug')('720kb:comunicator:debug'),
-    broadcaster = require('./broadcaster'),
-    sender = require('./sender'),
-    userChecker = require('./user-checker'),
-    websocketSym = Symbol('websocket'),
     comunicatorState = {
   'connectedSockets': new Map(),
   'sendPendingRequests': new Map()
@@ -44,25 +41,24 @@ var Comunicator = function (_Rx$Observable) {
 
       throw new Error('Missing mandatory parameters [websocketConfigurations] - [jwtSaltKey]: ' + websocketConfigurations + ' - ' + jwtSaltKey);
     }
+    var internalObservable = new Rx.Observable(function (subscriber) {
 
-    return _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Comunicator).call(this, function (observer) {
-
-      _this[websocketSym] = new ws.Server(websocketConfigurations, function () {
-        return observer.next({
+      var socketServer = new ws.Server(websocketConfigurations, function () {
+        return subscriber.next({
           'type': 'ready'
         });
       });
 
-      _this[websocketSym].on('error', function (error) {
-        return observer.error({
+      socketServer.on('error', function (err) {
+        return subscriber.error({
           'type': 'error',
-          'cause': new Error(error)
+          'cause': err
         });
       });
 
-      _this[websocketSym].on('connection', function (socket) {
+      socketServer.on('connection', function (socket) {
 
-        observer.next({
+        subscriber.next({
           'type': 'open',
           'whoami': socket
         });
@@ -82,13 +78,13 @@ var Comunicator = function (_Rx$Observable) {
 
                 if (isNaN(aSocket[0])) {
 
-                  observer.next({
+                  subscriber.next({
                     'type': 'user-leave',
                     'whoami': aSocket[0]
                   });
                 } else {
 
-                  observer.next({
+                  subscriber.next({
                     'type': 'user-leave',
                     'whoami': Number(aSocket[0])
                   });
@@ -113,10 +109,10 @@ var Comunicator = function (_Rx$Observable) {
           }
         });
 
-        socket.on('error', function (error) {
-          return observer.error({
+        socket.on('error', function (err) {
+          return subscriber.error({
             'type': 'error',
-            'cause': new Error(error)
+            'cause': err
           });
         });
 
@@ -131,9 +127,9 @@ var Comunicator = function (_Rx$Observable) {
 
               if (err) {
 
-                observer.error({
+                subscriber.error({
                   'type': 'error',
-                  'cause': new Error(err)
+                  'cause': err
                 });
               } else {
 
@@ -145,7 +141,7 @@ var Comunicator = function (_Rx$Observable) {
                 };
 
                 socket.send(JSON.stringify(toSend));
-                observer.next({
+                subscriber.next({
                   'type': 'user-joined',
                   'whoami': parsedMsg.whoami
                 });
@@ -164,9 +160,9 @@ var Comunicator = function (_Rx$Observable) {
                         _this.sendTo(aSendPendingRequest.whoami, aSendPendingRequest.who, aSendPendingRequest.what);
                       } else {
 
-                        observer.error({
+                        subscriber.error({
                           'type': 'warning',
-                          'cause': new Error('A sending pending request is invalid.')
+                          'cause': 'A sending pending request is invalid.'
                         });
                       }
                     }
@@ -188,7 +184,7 @@ var Comunicator = function (_Rx$Observable) {
                   comunicatorState.sendPendingRequests.delete(parsedMsg.whoami);
                 } else {
 
-                  observer.next({
+                  subscriber.next({
                     'type': 'no-pending-messages',
                     'whoami': parsedMsg.whoami
                   });
@@ -206,13 +202,13 @@ var Comunicator = function (_Rx$Observable) {
 
                 if (err) {
 
-                  observer.error({
+                  subscriber.error({
                     'type': 'error',
-                    'cause': new Error(err)
+                    'cause': err
                   });
                 } else {
 
-                  observer.next({
+                  subscriber.next({
                     'type': 'message-arrived',
                     'whoami': parsedMsg.data.whoami,
                     'who': parsedMsg.data.who,
@@ -233,13 +229,13 @@ var Comunicator = function (_Rx$Observable) {
 
                   if (err) {
 
-                    observer.error({
+                    subscriber.error({
                       'type': 'error',
-                      'cause': new Error(err)
+                      'cause': err
                     });
                   } else {
 
-                    observer.next({
+                    subscriber.next({
                       'type': 'message-arrived',
                       'whoami': parsedMsg.data.whoami,
                       'who': '*',
@@ -254,27 +250,38 @@ var Comunicator = function (_Rx$Observable) {
                 });
               } else {
 
-                observer.error({
+                subscriber.error({
                   'type': 'warning',
-                  'cause': new Error('operation not permitted: ' + JSON.stringify(parsedMsg))
+                  'cause': 'operation not permitted: ' + JSON.stringify(parsedMsg)
                 });
               }
         });
       });
+
+      return function () {
+
+        socketServer.close();
+      };
+    }).share();
+
+    return _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Comunicator).call(this, function (observer) {
+
+      var subscriptionToInternalObservable = internalObservable.subscribe(observer);
+
+      return function () {
+
+        subscriptionToInternalObservable.unsubscribe();
+      };
     }));
   }
-
-  _createClass(Comunicator, [{
-    key: 'close',
-    value: function close() {
-
-      this[websocketSym].close();
-    }
-  }]);
 
   return Comunicator;
 }(Rx.Observable);
 
-Object.assign(Comunicator.prototype, broadcaster(comunicatorState), sender(comunicatorState), userChecker(comunicatorState));
+Object.assign(Comunicator.prototype, user(comunicatorState), sendTo(comunicatorState), broadcast(comunicatorState));
 
-module.exports = Comunicator;
+module.exports = {
+  Comunicator: Comunicator,
+  'hapiComunicator': require('./hapi-plugin')(Comunicator)
+};
+//# sourceMappingURL=comunicator.js.map

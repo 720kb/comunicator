@@ -1,3 +1,5 @@
+'use strict';
+
 /**
 * comunicator
 * 2.2.4
@@ -6,11 +8,9 @@
 * https://github.com/720kb/comunicator
 *
 * MIT license
-* Wed Feb 10 2016
+* Thu Feb 25 2016
 */
-'use strict';
-
-/*global require,module*/
+/*global module,require*/
 var ws = require('ws'),
     debug = require('debug')('720kb:comunicator:broadcaster:debug');
 
@@ -26,7 +26,7 @@ module.exports = function (_ref) {
       } else {
 
         var toSend = {
-          'opcode': 'broadcasted',
+          'opcode': 'to-all',
           whoami: whoami,
           what: what
         },
@@ -65,3 +65,4 @@ module.exports = function (_ref) {
     }
   };
 };
+//# sourceMappingURL=broadcast.js.map

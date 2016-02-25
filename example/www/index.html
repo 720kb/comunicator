@@ -13,43 +13,50 @@
       </a>
     </div>
   </nav>
-  <div class="container" ng-controller="TestController">
+  <div class="container" ng-controller="TestController as test">
     <p>
       <div class="row blank-text">
-        <input type="text" ng-model="token" placeholder="Whoami"/>
-        <input type="text" ng-model="what" placeholder="What"/>
-        <input type="text" ng-model="userID" placeholder="User ID"/>
+        <input type="text" ng-model="test.userID" disabled="true" placeholder="User Identifier"/>
+        <input type="text" ng-model="test.token" disabled="true" placeholder="Whoami"/>
+        <input type="text" ng-model="test.userToSend" placeholder="user to send message"/>
+        <input type="text" ng-model="test.what" placeholder="What"/>
       </div>
     </p>
     <div class="row center-align">
-      <div class="col s4">
-        <button class="btn col m12 blue waves-effect waves-light" ng-click="userIsPresent()">
+      <div class="col s5">
+        <button class="btn col m12 blue waves-effect waves-light" ng-click="test.userIsPresent()">
           USER IS PRESENT
         </button>
       </div>
-      <div class="col s4">
-        <button class="btn col m12 indigo waves-effect waves-light" ng-click="broadcast()">BROADCAST
+      <div class="col s5">
+        <button class="btn col m12 indigo waves-effect waves-light" ng-click="test.broadcast()">
+          BROADCAST
         </button>
       </div>
-      <div class="col s4">
-        <button class="btn col m12 pink  waves-effect waves-light" ng-click="sendTo()">
+      <div class="col s5">
+        <button class="btn col m12 pink waves-effect waves-light" ng-click="test.sendTo(test.userToSend)">
           SEND TO
+        </button>
+      </div>
+      <div class="col s5">
+        <button class="btn col m12 green waves-effect waves-light" ng-click="test.exit()">
+          EXIT
         </button>
       </div>
     </div>
 
-    <div ng-show="message" class="card white">
+    <div ng-show="test.message" class="card white">
       <div class="card-content">
-        <h6 class="center-align" ng-show="message">
-          {{message}}
+        <h6 class="center-align" ng-show="test.message">
+          {{test.message}}
         </h6>
-        <p class="col m12 center-align blue-text">{{eventData}}</p>
+        <p class="col m12 center-align blue-text">{{test.elementData}}</p>
       </div>
     </div>
   </div>
-  <script type="text/javascript" src="comunicator.js"></script>
-  <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.0-rc.0/angular.min.js"></script>
-  <script type="text/javascript" src="comunicator-ng.js"></script>
+  <script type="text/javascript" src="https://npmcdn.com/@reactivex/rxjs@5.0.0-beta.1/dist/global/Rx.umd.js"></script>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular.js"></script>
+  <script type="text/javascript" src="angular-comunicator.js"></script>
   <script type="text/javascript" src="index.js"></script>
 </body>
 </html>

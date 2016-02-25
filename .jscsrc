@@ -2,6 +2,7 @@
   "esnext": true,
   "excludeFiles": [],
   "validateIndentation": 2,
+  "maximumLineLength": 500,
   "disallowMultipleVarDecl": false,
   "requireCommaBeforeLineBreak": false,
   "disallowQuotedKeysInObjects": false,

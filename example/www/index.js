@@ -1,104 +1,111 @@
 /*global angular*/
-(function withAngular() {
-  'use strict';
+'use strict';
 
-  angular.module('720kb.test', [
-    '720kb.comunicator'
-  ])
+angular.module('720kb.test', [
+  '720kb.comunicator'
+])
+.config(['ComunicatorProvider',
+function configFunction(ComunicatorProvider) {
 
-  .config(['ComunicatorProvider',
-  function configFunction(ComunicatorProvider) {
+  ComunicatorProvider.setComunicatorServerURL('ws://localhost:3001');
+}])
 
-    ComunicatorProvider.setComunicatorServerURL('ws://localhost:3001');
-  }])
+.controller('TestController', ['$rootScope', '$scope', '$http', '$log', 'Comunicator',
+function TestController($rootScope, $scope, $http, $log, comunicator) {
 
-  .controller('TestController', ['$rootScope', '$scope', '$http', '$log', 'Comunicator',
-  function TestController($rootScope, $scope, $http, $log, Comunicator) {
+  const joinedSubscription = comunicator
+        .filter(element => element.type === 'joined')
+        .subscribe({
+          'next': val => {
 
-    let unregisterOnComunicatorJoin
-      , unregisterOnComunicatorToMe
-      , unregisterOnComunicatorToAll;
+            $scope.$apply(() => {
 
-    $http.get('/token')
-      .success(data => {
+              this.message = 'Connected to comunicator';
+              this.elementData = val;
+            });
+          }
+        })
+      , toMeSubscription = comunicator
+        .filter(element => element.type === 'to-me')
+        .subscribe({
+          'next': val => {
 
-        $scope.token = data.token;
-        $scope.userID = data.userID;
-      })
-      .error(data => {
+            $scope.$apply(() => {
 
-        $log.debug(data);
-      });
+              this.message = 'A message from comunicator, for you.';
+              this.elementData = val;
+            });
+          }
+        })
+      , toAllSubscription = comunicator
+        .filter(element => element.type === 'to-all')
+        .subscribe({
+          'next': val => {
 
-    $scope.resetFlags = function resetFlags() {
+            $scope.$apply(() => {
 
-      $scope.message = undefined;
-      $scope.eventData = undefined;
-    };
-
-    $scope.userIsPresent = function userIsPresent() {
-
-      $scope.running = true;
-
-      $scope.resetFlags();
-
-      Comunicator.then(comunicator => {
-
-        comunicator.userIsPresent($scope.userID, $scope.token);
-      });
-    };
-
-    $scope.broadcast = function broadcast() {
-
-      $scope.running = true;
-      $scope.resetFlags();
-
-      Comunicator.then(comunicator => {
-
-        comunicator.broadcast({
-          'message': $scope.what
+              this.message = 'A message from comunicator, for all the people.';
+              this.elementData = val;
+            });
+          }
         });
-      });
-    };
 
-    $scope.sendTo = function sendTo() {
+  $http.get('/token')
+    .success(data => {
 
-      $scope.running = true;
-      $scope.resetFlags();
+      this.token = data.token;
+      this.userID = data.userID;
+    })
+    .error(data => {
 
-      Comunicator.then(comunicator => {
-
-        comunicator.sendTo($scope.userID, {
-          'message': $scope.what
-        });
-      });
-    };
-
-    unregisterOnComunicatorJoin = $rootScope.$on('comunicator:joined', (eventInfo, data) => {
-
-      $scope.running = false;
-      $scope.eventData = data;
-      $scope.message = 'Connected to comunicator';
-    });
-    unregisterOnComunicatorToMe = $rootScope.$on('comunicator:to-me', (eventInfo, data) => {
-
-      $scope.running = false;
-      $scope.eventData = data;
-      $scope.message = 'A message from comunicator, for you.';
+      $log.debug(data);
     });
 
-    unregisterOnComunicatorToAll = $rootScope.$on('comunicator:to-all', (eventInfo, data) => {
+  this.resetFlags = function resetFlags() {
 
-      $scope.running = false;
-      $scope.eventData = data;
-      $scope.message = 'A message from comunicator, for all the people.';
-    });
+    this.message = undefined;
+    this.elementData = undefined;
+  };
 
-    $scope.$on('$destroy', () => {
+  this.userIsPresent = () => {
 
-      unregisterOnComunicatorToMe();
-      unregisterOnComunicatorJoin();
-      unregisterOnComunicatorToAll();
-    });
-  }]);
-}(angular));
+    this.resetFlags();
+    comunicator.userIsPresent(this.userID, this.token);
+  };
+
+  this.broadcast = () => {
+
+    this.resetFlags();
+    comunicator.broadcast(this.what);
+  };
+
+  this.sendTo = user => {
+
+    if (user &&
+      !isNaN(user)) {
+
+      this.resetFlags();
+      comunicator.sendTo(Number(user), this.what);
+    } else {
+
+      throw new Error('User is not a valid number');
+    }
+  };
+
+  this.exit = () => {
+
+    this.resetFlags();
+    joinedSubscription.unsubscribe();
+    toMeSubscription.unsubscribe();
+    toAllSubscription.unsubscribe();
+    this.token = undefined;
+    this.userID = undefined;
+  };
+
+  $scope.$on('$destroy', () => {
+
+    joinedSubscription.unsubscribe();
+    toMeSubscription.unsubscribe();
+    toAllSubscription.unsubscribe();
+  });
+}]);

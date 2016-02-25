@@ -6,46 +6,33 @@
 * https://github.com/720kb/comunicator
 *
 * MIT license
-* Wed Feb 10 2016
+* Thu Feb 25 2016
 */
+
 (function (global, factory) {
-  if (typeof define === "function" && define.amd) {
-    define('angular-comunicator', ['angular', 'rxjs/Rx', 'ws'], factory);
-  } else if (typeof exports !== "undefined") {
-    factory(require('angular'), require('rxjs/Rx'), require('ws'));
-  } else {
-    var mod = {
-      exports: {}
-    };
-    factory(global.angular, global.Rx, global.ws);
-    global.angularComunicator = mod.exports;
-  }
-})(this, function (_angular, _Rx, _ws) {
-  'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('angular'), require('rxjs/Rx'), require('ws')) :
+  typeof define === 'function' && define.amd ? define('angular-comunicator', ['angular', 'rxjs/Rx', 'ws'], factory) :
+  (factory(global.angular,global.Rx,global.WebSocket));
+}(this, function (angular,Rx,WebSocket) { 'use strict';
 
-  var _angular2 = _interopRequireDefault(_angular);
+  angular = 'default' in angular ? angular['default'] : angular;
+  Rx = 'default' in Rx ? Rx['default'] : Rx;
+  WebSocket = 'default' in WebSocket ? WebSocket['default'] : WebSocket;
 
-  var _Rx2 = _interopRequireDefault(_Rx);
-
-  function _interopRequireDefault(obj) {
-    return obj && obj.__esModule ? obj : {
-      default: obj
-    };
-  }
-
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
+  var babelHelpers = {};
+  babelHelpers.typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
     return typeof obj;
   } : function (obj) {
     return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj;
   };
 
-  function _classCallCheck(instance, Constructor) {
+  babelHelpers.classCallCheck = function (instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
-  }
+  };
 
-  var _createClass = function () {
+  babelHelpers.createClass = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];
@@ -63,15 +50,7 @@
     };
   }();
 
-  function _possibleConstructorReturn(self, call) {
-    if (!self) {
-      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }
-
-    return call && (typeof call === "object" || typeof call === "function") ? call : self;
-  }
-
-  function _inherits(subClass, superClass) {
+  babelHelpers.inherits = function (subClass, superClass) {
     if (typeof superClass !== "function" && superClass !== null) {
       throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
     }
@@ -85,114 +64,23 @@
       }
     });
     if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }
+  };
 
-  var WebSocketCtor$1 = undefined;
-
-  try {
-
-    WebSocketCtor$1 = _ws.WebSocket;
-    if (!WebSocketCtor$1) {
-
-      WebSocketCtor$1 = window.WebSocket;
+  babelHelpers.possibleConstructorReturn = function (self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
     }
-  } catch (err) {
 
-    WebSocketCtor$1 = window.WebSocket;
-  }
-
-  var sendMessageFactory = function sendMessageFactory(_ref) {
-    var reallyToken = _ref.reallyToken;
-    var websocket = _ref.websocket;
-    var _ref$queue = _ref.queue;
-    var queue = _ref$queue === undefined ? [] : _ref$queue;
-    return {
-      'sendMessage': function sendMessage(opcode, data) {
-        var messageToSend = JSON.stringify({
-          opcode: opcode,
-          'token': reallyToken,
-          data: data
-        });
-
-        if (websocket.readyState === WebSocketCtor$1.OPEN) {
-
-          websocket.push(messageToSend);
-        } else {
-
-          queue.push(messageToSend);
-        }
-      }
-    };
+    return call && (typeof call === "object" || typeof call === "function") ? call : self;
   };
 
-  var sender = function sender(_ref2) {
-    var whoReallyAmI = _ref2.whoReallyAmI;
-    var websocket = _ref2.websocket;
-    return {
-      'sendTo': function sendTo(who, what, managed) {
+  babelHelpers;
 
-        if (whoReallyAmI && websocket) {
-
-          var toSend = {
-            'whoami': whoReallyAmI,
-            who: who,
-            what: what
-          };
-
-          if (managed) {
-
-            toSend.managed = true;
-          }
-
-          websocket.send('sendTo', toSend);
-        } else {
-
-          throw new Error('User identification required');
-        }
-      }
-    };
-  };
-
-  var broadcaster = function broadcaster(_ref3) {
-    var whoReallyAmI = _ref3.whoReallyAmI;
-    var websocket = _ref3.websocket;
-    return {
-      'broadcast': function broadcast(what, managed) {
-
-        if (whoReallyAmI && websocket) {
-
-          var toSend = {
-            'whoami': whoReallyAmI,
-            'who': '*',
-            what: what
-          };
-
-          if (managed) {
-
-            toSend.managed = true;
-          }
-
-          websocket.send('broadcast', toSend);
-        } else {
-
-          throw new Error('User identification required');
-        }
-      }
-    };
-  };
-
-  var comunicatorState = {
-    'whoReallyAmI': undefined,
-    'reallyToken': undefined,
-    'websocket': undefined,
-    'queue': []
-  };
-  var doJoinSym = Symbol('doJoin');
   var WebSocketCtor = undefined;
 
   try {
 
-    WebSocketCtor = _ws.WebSocket;
+    WebSocketCtor = WebSocket;
     if (!WebSocketCtor) {
 
       WebSocketCtor = window.WebSocket;
@@ -202,154 +90,242 @@
     WebSocketCtor = window.WebSocket;
   }
 
+  var whoReallyAmISym = Symbol('whoReallyAmI');
+  var reallyTokenSym = Symbol('reallyToken');
+  var websocketSym = Symbol('websocket');
+  var queueSym = Symbol('queue');
+  var timeWaitSlice = 9000;
+  var timeWaitSliceChoices = [0];
+  var giveMeATimeWait = function giveMeATimeWait() {
+
+    return Math.floor(Math.random() * (timeWaitSliceChoices.length + 1));
+  };
   var Comunicator = function (_Rx$Observable) {
-    _inherits(Comunicator, _Rx$Observable);
+    babelHelpers.inherits(Comunicator, _Rx$Observable);
 
     function Comunicator(websocketUrl) {
-      _classCallCheck(this, Comunicator);
+      babelHelpers.classCallCheck(this, Comunicator);
 
-      var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Comunicator).call(this, function (observer) {
+      if (!websocketUrl) {
 
-        if (websocketUrl) {
+        throw new Error('Mandatory parameter is missing: [websocketUrl] ' + websocketUrl);
+      }
 
-          if (typeof websocketUrl === 'string') {
+      var internalObservable = new Rx.Observable(function (subscriber) {
+        var inError = false;
 
-            comunicatorState.websocket = new WebSocketCtor(websocketUrl);
-          } else if ((typeof websocketUrl === 'undefined' ? 'undefined' : _typeof(websocketUrl)) === 'object' && websocketUrl instanceof WebSocketCtor) {
+        if (_this[websocketSym] && (_this[websocketSym].readyState !== WebSocketCtor.CONNECTING || _this[websocketSym].readyState !== WebSocketCtor.OPEN)) {
 
-            comunicatorState.websocket = websocketUrl;
-          } else {
+          inError = true;
+        }
 
-            observer.error({
-              'type': 'error',
-              'cause': 'websocket parameter passed is neither a string nor a WebSocket object'
+        if (typeof websocketUrl === 'string') {
+
+          _this[websocketSym] = new WebSocketCtor(websocketUrl);
+        } else if ((typeof websocketUrl === 'undefined' ? 'undefined' : babelHelpers.typeof(websocketUrl)) === 'object' && websocketUrl instanceof WebSocketCtor) {
+
+          _this[websocketSym] = websocketUrl;
+        } else {
+
+          throw new Error('websocket parameter passed is neither a string nor a WebSocket object');
+        }
+
+        _this[websocketSym].onopen = function (event) {
+
+          subscriber.next({
+            'type': 'open',
+            'whoami': event.target
+          });
+
+          while (_this[queueSym].length > 0 && _this[websocketSym].readyState === WebSocketCtor.OPEN) {
+
+            _this[websocketSym].push(_this[queueSym].shift());
+          }
+        };
+
+        _this[websocketSym].onmessage = function (event) {
+          var parsedMsg = JSON.parse(event.data);
+
+          if (parsedMsg.opcode === 'joined') {
+
+            subscriber.next({
+              'type': 'joined',
+              'whoami': parsedMsg.whoami
+            });
+          } else if (parsedMsg.opcode === 'to-me') {
+
+            subscriber.next({
+              'type': 'to-me',
+              'whoami': parsedMsg.whoami,
+              'who': parsedMsg.who,
+              'what': parsedMsg.what
+            });
+          } else if (parsedMsg.opcode === 'to-all') {
+
+            subscriber.next({
+              'type': 'to-all',
+              'whoami': parsedMsg.whoami,
+              'what': parsedMsg.what
             });
           }
+        };
 
-          observer.next({
-            'type': 'ready'
+        _this[websocketSym].onerror = function (error) {
+
+          subscriber.error({
+            'type': 'error',
+            'cause': error
+          });
+        };
+
+        _this[websocketSym].onclose = function () {
+
+          subscriber.error({
+            'type': 'closed'
+          });
+        };
+
+        _this[websocketSym].push = _this[websocketSym].send;
+        _this[websocketSym].send = function (opcode, data) {
+          var messageToSend = JSON.stringify({
+            opcode: opcode,
+            'token': _this[reallyTokenSym],
+            data: data
           });
 
-          comunicatorState.websocket.onopen = function (openEvent) {
+          if (_this[websocketSym] && _this[websocketSym].readyState === WebSocketCtor.OPEN) {
 
-            observer.next({
-              'type': 'open',
-              'whoami': openEvent.target
-            });
+            _this[websocketSym].push(messageToSend);
+          } else {
 
-            while (comunicatorState.queue.length > 0 && comunicatorState.websocket.readyState === WebSocketCtor.OPEN) {
+            _this[queueSym].push(messageToSend);
+          }
+        };
 
-              comunicatorState.websocket.push(comunicatorState.queue.shift());
-            }
-          };
+        if (inError && _this[websocketSym].readyState !== WebSocketCtor.CONNECTING && _this[websocketSym].readyState !== WebSocketCtor.OPEN) {
 
-          comunicatorState.websocket.onmessage = function (event) {
-            var parsedMsg = window.JSON.parse(event.data);
-
-            if (parsedMsg.opcode === 'joined') {
-
-              observer.next({
-                'type': 'joined',
-                'value': parsedMsg
-              });
-            } else if (parsedMsg.opcode === 'sent') {
-
-              observer.next({
-                'type': 'to-me',
-                'value': parsedMsg
-              });
-            } else if (parsedMsg.opcode === 'broadcasted') {
-
-              observer.next({
-                'type': 'to-all',
-                'value': parsedMsg
-              });
-            }
-          };
-          comunicatorState.websocket.onclose = function () {
-
-            if (comunicatorState.whoReallyAmI && comunicatorState.reallyToken) {
-
-              observer.next({
-                'type': 'closed'
-              });
-              observer.complete();
-            }
-          };
-
-          comunicatorState.websocket.push = comunicatorState.websocket.send;
-          comunicatorState.websocket.send = sendMessageFactory(comunicatorState);
-        } else {
-
-          observer.error({
-            'type': 'error',
-            'cause': 'Please provide a valid URL.'
+          subscriber.error({
+            'type': 'closed'
           });
         }
+
+        return function () {
+
+          _this[websocketSym].close();
+        };
+      }).share();
+
+      var _this = babelHelpers.possibleConstructorReturn(this, Object.getPrototypeOf(Comunicator).call(this, function (observer) {
+
+        var subscriptionToInternalObservable = internalObservable.retryWhen(function (errors) {
+          return errors.switchMap(function () {
+            var nextTimeWaitSliceChoice = timeWaitSlice * (Math.pow(2, timeWaitSliceChoices.length) - 1);
+
+            timeWaitSliceChoices.push(nextTimeWaitSliceChoice);
+            return Rx.Observable.timer(timeWaitSliceChoices[giveMeATimeWait()]);
+          });
+        }).subscribe(observer);
+
+        return function () {
+
+          subscriptionToInternalObservable.unsubscribe();
+        };
       }));
 
-      _this[doJoinSym] = function () {
-        var joinMessage = JSON.stringify({
-          'opcode': 'join',
-          'whoami': comunicatorState.whoReallyAmI,
-          'token': comunicatorState.reallyToken
-        });
-
-        if (comunicatorState.websocket.readyState === WebSocketCtor.OPEN) {
-
-          comunicatorState.websocket.push(joinMessage);
-        } else {
-
-          comunicatorState.queue.push(joinMessage);
-        }
-      };
+      _this[queueSym] = [];
       return _this;
     }
 
-    _createClass(Comunicator, [{
+    babelHelpers.createClass(Comunicator, [{
       key: 'userIsPresent',
       value: function userIsPresent(whoami, token) {
 
-        if (comunicatorState.whoReallyAmI !== whoami || comunicatorState.reallyToken !== token) {
+        if (this[whoReallyAmISym] !== whoami || this[reallyTokenSym] !== token) {
 
           if (whoami && token) {
 
-            comunicatorState.whoReallyAmI = whoami;
-            comunicatorState.reallyToken = token;
-            this[doJoinSym]();
-          }
+            this[whoReallyAmISym] = whoami;
+            this[reallyTokenSym] = token;
 
-          throw new Error('User identification datas missing.');
+            var joinMessage = JSON.stringify({
+              'opcode': 'join',
+              'whoami': this[whoReallyAmISym],
+              'token': this[reallyTokenSym]
+            });
+
+            if (this[websocketSym] && this[websocketSym].readyState === WebSocketCtor.OPEN) {
+
+              this[websocketSym].push(joinMessage);
+            } else {
+
+              this[queueSym].push(joinMessage);
+            }
+          } else {
+
+            throw new Error('User identification datas missing.');
+          }
         } else {
 
-          window.console.info('User is already identified.');
+          throw new Error('User is already identified.');
         }
       }
     }, {
-      key: 'exit',
-      value: function exit() {
+      key: 'sendTo',
+      value: function sendTo(who, what, managed) {
 
-        if (comunicatorState.whoReallyAmI && comunicatorState.reallyToken && comunicatorState.websocket.readyState === WebSocketCtor.OPEN) {
+        if (this[whoReallyAmISym] && this[websocketSym]) {
 
-          comunicatorState.websocket.close();
-          comunicatorState.whoReallyAmI = undefined;
-          comunicatorState.reallyToken = undefined;
+          var toSend = {
+            'whoami': this[whoReallyAmISym],
+            who: who,
+            what: what
+          };
+
+          if (managed) {
+
+            toSend.managed = true;
+          }
+
+          this[websocketSym].send('sendTo', toSend);
+        } else {
+
+          throw new Error('User identification required');
+        }
+      }
+    }, {
+      key: 'broadcast',
+      value: function broadcast(what, managed) {
+
+        if (this[whoReallyAmISym] && this[websocketSym]) {
+
+          var toSend = {
+            'whoami': this[whoReallyAmISym],
+            'who': '*',
+            what: what
+          };
+
+          if (managed) {
+
+            toSend.managed = true;
+          }
+
+          this[websocketSym].send('broadcast', toSend);
+        } else {
+
+          throw new Error('User identification required');
         }
       }
     }, {
       key: 'whoAmI',
       get: function get() {
 
-        return comunicatorState.whoReallyAmI;
+        return this[whoReallyAmISym];
       }
     }]);
-
     return Comunicator;
-  }(_Rx2.default.Observable);
+  }(Rx.Observable);
 
-  Object.assign(Comunicator.prototype, broadcaster(comunicatorState), sender(comunicatorState));
-
-  _angular2.default.module('720kb.comunicator', []).provider('Comunicator', function () {
+  angular.module('720kb.comunicator', []).provider('Comunicator', function () {
     var comunicator = undefined;
     var initComunicator = function initComunicator(url) {
 
@@ -359,53 +335,12 @@
 
     return {
       'setComunicatorServerURL': initComunicator,
-      '$get': /*@ngInject*/["$rootScope", function $get($rootScope) {
-
-        comunicator.forEach(function (element) {
-
-          $rootScope.$apply(function (scope) {
-
-            scope.$emit('comunicator:event', element);
-          });
-        });
-        /*const arrivedJoined = () => {
-           $rootScope.$apply(scope => {
-             scope.$emit('comunicator:joined');
-          });
-           $log.debug('comunicator:joined dispatched');
-        }
-        , arrivedToMe = event => {
-           $rootScope.$apply(scope => {
-             scope.$emit('comunicator:to-me', event.detail);
-          });
-           $log.debug('comunicator:to-me dispatched');
-        }
-        , arrivedToAll = event => {
-           $rootScope.$apply(scope => {
-             scope.$emit('comunicator:to-all', event.detail);
-          });
-           $log.debug('comunicator:to-all dispatched');
-        }
-        , arrivedClosed = () => {
-           $rootScope.$apply(scope => {
-             scope.$emit('comunicator:closed');
-          });
-           $log.debug('comunicator:closed dispatched');
-        };
-         $window.addEventListener('comunicator:joined', arrivedJoined, false);
-        $window.addEventListener('comunicator:to-me', arrivedToMe, false);
-        $window.addEventListener('comunicator:to-all', arrivedToAll, false);
-        $window.addEventListener('comunicator:closed', arrivedClosed, false);
-         $rootScope.$on('$destroy', () => {
-           $window.removeEventListener('comunicator:joined', arrivedJoined, false);
-          $window.removeEventListener('comunicator:to-me', arrivedToMe, false);
-          $window.removeEventListener('comunicator:to-all', arrivedToAll, false);
-          $window.removeEventListener('comunicator:closed', arrivedClosed, false);
-        });*/
+      '$get': /*@ngInject*/function $get() {
 
         return comunicator;
-      }]
+      }
     };
   });
-});
+
+}));
 //# sourceMappingURL=angular-comunicator.js.map

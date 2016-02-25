@@ -9,7 +9,8 @@
     , before = lab.before
     , expect = code.expect
     , salt = 'kjwf788fu38l102ijllwefliuh98hegfj98usjsjsnwe%&kjnwef$kjwnflllyyyuii'
-    , Comunicator = require('../dist/node/comunicator');
+    , comunicator = require('../dist/node/comunicator')
+    , Comunicator = comunicator.Comunicator;
 
   describe('comunicator is correctly instantiated', () => {
     let comunicatorMethods;
@@ -26,14 +27,13 @@
         'constructor',
         'broadcast',
         'sendTo',
-        'close',
         'isUserPresent']);
       done();
     });
 
     it('should instantiate the comunicator', done => {
       const theComunicator = new Comunicator({
-        'host': 'localhost',
+        'host': '::',
         'port': 3000
       }, salt);
 
@@ -48,7 +48,6 @@
 
       done();
     });
-
   });
 
   module.exports = {

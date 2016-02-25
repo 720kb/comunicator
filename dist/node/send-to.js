@@ -1,3 +1,5 @@
+'use strict';
+
 /**
 * comunicator
 * 2.2.4
@@ -6,14 +8,11 @@
 * https://github.com/720kb/comunicator
 *
 * MIT license
-* Wed Feb 10 2016
+* Thu Feb 25 2016
 */
-'use strict';
-
 /*global require,module*/
 var ws = require('ws'),
-    debug = require('debug')('720kb:comunicator:sender:debug'),
-    error = require('debug')('720kb:comunicator:sender:error');
+    debug = require('debug')('720kb:comunicator:sender:debug');
 
 module.exports = function (_ref) {
   var _ref$connectedSockets = _ref.connectedSockets;
@@ -29,14 +28,14 @@ module.exports = function (_ref) {
       } else {
 
         var toSend = {
-          'opcode': 'sent',
+          'opcode': 'to-me',
           whoami: whoami,
           who: who,
           what: what
         },
             aWebSocket = connectedSockets.get(who);
 
-        debug('Sending message from ' + whoami + ' to ' + who + ': ' + what);
+        debug('Sending message from ' + whoami + ' to ' + who + ' via ' + aWebSocket + ': ' + what);
         if (Boolean(aWebSocket) && aWebSocket.readyState === ws.OPEN) {
 
           aWebSocket.send(JSON.stringify(toSend));
@@ -52,9 +51,10 @@ module.exports = function (_ref) {
             who: who,
             what: what
           });
-          error('User ' + who + ' isn\'t here at the moment...');
+          debug('User ' + who + ' isn\'t here at the moment...');
         }
       }
     }
   };
 };
+//# sourceMappingURL=send-to.js.map
