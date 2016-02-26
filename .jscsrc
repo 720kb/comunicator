@@ -1,7 +1,15 @@
 {
+  "esnext": true,
+  "excludeFiles": [],
   "validateIndentation": 2,
-  "disallowAnonymousFunctions": true,
-  "disallowCapitalizedComments": true,
+  "maximumLineLength": 500,
+  "disallowMultipleVarDecl": false,
+  "requireCommaBeforeLineBreak": false,
+  "disallowQuotedKeysInObjects": false,
+  "requireTrailingComma": false,
+  "requireSpacesInsideObjectBrackets": false,
+  "requirePaddingNewLinesAfterBlocks": false,
+  "disallowAnonymousFunctions": false,
   "disallowDanglingUnderscores": true,
   "disallowEmptyBlocks": true,
   "disallowFunctionDeclarations": true,
@@ -44,7 +52,7 @@
   "requireLineBreakAfterVariableAssignment": true,
   "requireLineFeedAtFileEnd": true,
   "requireMultipleVarDecl": true,
-  "requireNamedUnassignedFunctions": true,
+  "requireNamedUnassignedFunctions": false,
   "requireOperatorBeforeLineBreak": [
       "?",
       "=",
@@ -70,7 +78,10 @@
   "requireSpaceBetweenArguments": true,
   "requireSpacesInAnonymousFunctionExpression": {
     "beforeOpeningRoundBrace": true,
-    "beforeOpeningCurlyBrace": true
+    "beforeOpeningCurlyBrace": true,
+    "allExcept": [
+      "shorthand"
+    ]
   },
   "requireSpacesInForStatement": true,
   "requireSpacesInFunctionDeclaration": {

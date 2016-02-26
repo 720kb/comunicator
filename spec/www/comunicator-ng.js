@@ -1,1 +1,0 @@
-../../src/angular/comunicator.js

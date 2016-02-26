@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test</title>
+  <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/materialize/0.96.1/css/materialize.min.css">
+</head>
+<body class="grey lighten-3" ng-app="720kb.test">
+  <nav class="white">
+    <div class="nav-wrapper black-text">
+      <a href="#" class="brand-logo black-text">
+        &nbsp;
+        <small>Comunicator <span class="grey-text">Test</span></small>
+      </a>
+    </div>
+  </nav>
+  <div class="container" ng-controller="TestController as test">
+    <p>
+      <div class="row blank-text">
+        <input type="text" ng-model="test.userID" disabled="true" placeholder="User Identifier"/>
+        <input type="text" ng-model="test.token" disabled="true" placeholder="Whoami"/>
+        <input type="text" ng-model="test.userToSend" placeholder="user to send message"/>
+        <input type="text" ng-model="test.what" placeholder="What"/>
+      </div>
+    </p>
+    <div class="row center-align">
+      <div class="col s5">
+        <button class="btn col m12 blue waves-effect waves-light" ng-click="test.userIsPresent()">
+          USER IS PRESENT
+        </button>
+      </div>
+      <div class="col s5">
+        <button class="btn col m12 indigo waves-effect waves-light" ng-click="test.broadcast()">
+          BROADCAST
+        </button>
+      </div>
+      <div class="col s5">
+        <button class="btn col m12 pink waves-effect waves-light" ng-click="test.sendTo(test.userToSend)">
+          SEND TO
+        </button>
+      </div>
+      <div class="col s5">
+        <button class="btn col m12 green waves-effect waves-light" ng-click="test.exit()">
+          EXIT
+        </button>
+      </div>
+    </div>
+
+    <div ng-show="test.message" class="card white">
+      <div class="card-content">
+        <h6 class="center-align" ng-show="test.message">
+          {{test.message}}
+        </h6>
+        <p class="col m12 center-align blue-text">{{test.elementData}}</p>
+      </div>
+    </div>
+  </div>
+  <script type="text/javascript" src="https://npmcdn.com/@reactivex/rxjs@5.0.0-beta.2/dist/global/Rx.umd.js"></script>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular.js"></script>
+  <script type="text/javascript" src="angular-comunicator.js"></script>
+  <script type="text/javascript" src="index.js"></script>
+</body>
+</html>

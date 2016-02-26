@@ -10,18 +10,17 @@ The client could be used in AngularJS, via provider, or in plain javascript.
 
 Comunicator is developed by [720kb](http://720kb.net).
 
-## Requirements
+## Requirements and Dependencies
 
-This implementation needs a browser that is:
-- capable to instantiate [websockets](http://caniuse.com/#search=websocket), due to the fact that it wraps a websocket;
-- has  [requestAnimationFrame](http://caniuse.com/#feat=requestanimationframe) ("_shimmed_" or not) for the exponential back off algorithm;
-- has [Promises](http://caniuse.com/#feat=promises) ("_shimmed_" or not) because comunicator client is a `Promise`.
+This implementation needs a browser that is capable to instantiate [websockets](http://caniuse.com/#search=websocket), due to the fact that it wraps a websocket.
+
+The comunicator is an [Observable](https://zenparsing.github.io/es-observable) and uses the [RxJs](https://github.com/ReactiveX/RxJS) implementation.
 
 The AngularJS provider needs at least AngularJS version 1.2.
 
 ## Installation
 
-Comunicator could be installed via npm or bower
+Comunicator could be installed via npm or bower:
 
 #### NPM
 ```sh
@@ -32,24 +31,20 @@ $ npm install --save comunicator
 $ bower install --save comunicator
 ```
 
-### Loading
-
-#### Node.js side
-In node.js you have to instantiate Comunicator passing a _salt_ as showed here:
+### Node.js side
+In node.js you have to instantiate Comunicator passing a websocket configuration object and a _jwtSalt_ as showed here:
 ```javascript
-var jwtSalt = '_super_secret_salt_12345'
-  , comunicator = require('comunicator')(jwtSalt);
+const jwtSalt = '_super_secret_salt_12345'
+  , Comunicator = require('comunicator').Comunicator
+  , theComunicator = new Comunicator({
+    'host': '::',
+    'port': 3000
+  }, jwtSalt);
 ```
-The _salt_ is used in conjunction with [jwt](https://tools.ietf.org/html/rfc7519) to sign messages, achieving integrity in what is sent.
 
-By default the websocket is bound on `0.0.0.0:9876` address, but it can be configured setting `COMUNICATOR_HOST` and `COMUNICATOR_PORT` to the preferred host and port.
+The websocket configuration object refers to the options passed to [ws.Server](https://github.com/websockets/ws/blob/master/doc/ws.md#new-wsserveroptions-callback) constructor.
 
-For example:
-- `COMUNICATOR_HOST='127.0.0.1'`;
-- `COMUNICATOR_PORT=7546`:
-
-##### API
-The api exposed is:
+The methods exposed are:
 
 - `broadcast(whoami, what)`: this sends `what` to everyone who is connected. The message is sent to the others with `whoami` as sender;
 
@@ -57,26 +52,65 @@ The api exposed is:
 
 - `isUserPresent(who)`: checks if `who` is connected to Comunicator.
 
-Comunicator is also an `EventEmitter` and can emit these events:
+A subscriber to the comunicator could receive:
 
-- `comunicator:user-joined`: emitted when a user fulfills the connection in Comunicator. The event payload contains the comunicator client who joined;
-
-- `comunicator:user-leave`: emitted when a user closes the Comunicator connection. The event payload contains the comunicator client who leaves;
-
-- `comunicator:message-arrived`: emitted when a message is arrived. The event payload contains the informations that describes the message itself:
-```javascript
-  {
-    'whoami': <sender>,
-    'who': <recipient | *>,
-    'what': <message payload
-  }
+- ```javascript
+{
+  'type': 'ready'
+}
 ```
-In _broadcast_-ed messages the recipient is `*` due to the fact that the message is for everyone.
+When the underlined websocket is instantiated;
 
-#### Client side
+- ```javascript
+{
+  'type': 'open',
+  'whoami': <a_websocket>
+}
+```
+When a user is conneced to the server;
+
+- ```javascript
+{
+  'type': 'user-leave',
+  'whoami': <the_user_identifier>
+}
+```
+When a user closes the Comunicator connection;
+
+- ```javascript
+{
+  'type': 'user-joined',
+  'whoami': <the_user_identifier>
+}
+```
+When a user fulfills the connection in Comunicator;
+
+- ```javascript
+{
+  'type': 'no-pending-messages',
+  'whoami': <the_user_identifier>
+}
+```
+When there aren't messages for the identified user;
+
+- ```javascript
+{
+  'type': 'message-arrived',
+  'whoami': <sender>,  
+  'who': <recipient | *>,
+  'what': <message payload>
+}
+```
+When a message is arrived.
+
+In _broadcast_-ed messages the recipient is `*` due to the fact that the message is for everyone;
+
+### Client side
 The files you need are:
-- `dist/comunicator.min.js` for the plain javascript implementation;
-- `dist/comunicator-angular.min.js` for the AngularJS  implementation.
+- `dist/frontend/comunicator-min.js` for the plain javascript implementation;
+- `dist/frontend/angular-comunicator-min.js` for the AngularJS implementation.
+
+There are also the not minified versions available in the same folder (without `min`).
 
 If you are about to use the AngularJS provider you have to include the module that brings the provider, for example:
 
@@ -86,66 +120,70 @@ angular.module('app', [
  ]);
 ```
 
-### API
-
 #### Plain javascript
-`Comunicator` client is a `window` object. To use it you need to create an instance of it, for example:
+Comunicator client is an UMD module (it can be used also in node.js programs). After you load the comunicator file with what you prefer (SystemJS, RequireJs, Browserify, ...) to use it you need to create an instance of comunicator, for example:
 ```javascript
-  var comunicator = new Comunicator(<backend comunicator url>);
+  const comunicator = new Comunicator(<backend comunicator url>);
 ```
-This returns a `Promise` that is resolved when the client websocket is correctly connected to the websocket server.
+or
+```javascript
+  const comunicator = new Comunicator(<an already instantiated websocket>);
+```
 
-The connection enstablishment is also notified by the `comunicator:ready` event dispatched by `window`.
-
-##### Methods
-The resolved object expose this methods:
-- `whoAmI()`: returns the client identifier stored in comunicator client;
+The comunicator client object expose this methods:
 
 - `userIsPresent(whoami, token)`: this sends to comunicator server who the client is and which jwt token will be used;
 
 - `broadcast(what, managed)`: this sends `what` to everyone who is connected;
 
-- `sendTo(who, what, managed)`: this sends `what` to `who`;
+- `sendTo(who, what, managed)`: this sends `what` to `who`.
 
-- `exit()`: this disconnects the comunicator client.
+and also have the `whoAmI` property that returns the client identifier stored in comunicator client.
 
 As you can see `sendTo` and `broadcast` methods have the `managed` parameter. Comunicator server forwards messages from client to client by default. If a client doesn't want this behaviour, should call the method with a truthy value to `managed` parameter.
 
-Comunicator client dispatches also events from `window`; they are:
-- `comunicator:ready`: dispatched when the comunicator is connected to websocket and ready for joining;
+A subscriber to the comunicator client could receive:
 
-- `comunicator:joined`: dispatched when the comunicator client has finished the joining process;
-
-- `comunicator:to-me`: dispatched when the comunicator client receives a directly sent message. The event payload contains the message informations:
-```javascript
-  {
-    'detail': {
-      'opcode': 'sent',
-      'whoami': <sender>,
-      'who': <recipient>,
-      'what': <message payload>
-    }
-  }
+- ```javascript
+{
+  'type': 'open',
+  'whoami': <websocket_opened>
+}
 ```
+When the underlined comunicator websocket is opened;
 
-- `comunicator:to-all`: dispatched when the comunicator client receives a broadcasted message. The event payload contains the message informations:
-```javascript
-  {
-    'detail': {
-      'opcode': 'broadcasted',
-      'whoami': <sender>,
-      'what': <message payload>
-    }
-  }
+- ```javascript
+{
+  'type': 'joined',
+  'whoami': <the_user_identifier>
+}
 ```
-- `comunicator:closed`: dispatched when the comunicator client ends its disconnection process;
+When the comunicator client has finished the joining process;
+
+- ```javascript
+{
+  'type': 'to-me',
+  'whoami': <sender>,
+  'who': <recipient>,
+  'what': <message payload>
+}
+```
+When the comunicator client receives a directly sent message.
+
+- ```javascript
+{
+  'type': 'to-all',
+  'whoami': <sender>,
+  'what': <message payload>
+}
+```
+When the comunicator client receives a broadcasted message.
 
 #### AngularJS
 
-The provider exposes the `setComunicatorServerURL(<backend comunicator url>)` that must be called to instantiate and configure the `Comunicator` object.
+The provider exposes the `setComunicatorServerURL(<backend comunicator url>|<already instantiated websocket>)` that must be called to instantiate and configure the Comunicator object.
 
-Done that, the same object described for plain javascript is exposed as an AngularJS service.
-The events `comunicator:joined`, `comunicator:to-me`, `comunicator:to-all` and `comunicator:closed` are emitted from $rootScope and can be used inside your AngularJS application.
+Done that, the Comunicator object is available via the provider. Please note that you need to run `$scope.$apply()` method to update your view after a reaction from comunicator.
 
 ## Contributing
 
