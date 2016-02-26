@@ -54,14 +54,14 @@ The methods exposed are:
 
 A subscriber to the comunicator could receive:
 
-- ```javascript
+```javascript
 {
   'type': 'ready'
 }
 ```
 When the underlined websocket is instantiated;
 
-- ```javascript
+```javascript
 {
   'type': 'open',
   'whoami': <a_websocket>
@@ -69,7 +69,7 @@ When the underlined websocket is instantiated;
 ```
 When a user is conneced to the server;
 
-- ```javascript
+```javascript
 {
   'type': 'user-leave',
   'whoami': <the_user_identifier>
@@ -77,7 +77,7 @@ When a user is conneced to the server;
 ```
 When a user closes the Comunicator connection;
 
-- ```javascript
+```javascript
 {
   'type': 'user-joined',
   'whoami': <the_user_identifier>
@@ -85,7 +85,7 @@ When a user closes the Comunicator connection;
 ```
 When a user fulfills the connection in Comunicator;
 
-- ```javascript
+```javascript
 {
   'type': 'no-pending-messages',
   'whoami': <the_user_identifier>
@@ -93,7 +93,7 @@ When a user fulfills the connection in Comunicator;
 ```
 When there aren't messages for the identified user;
 
-- ```javascript
+```javascript
 {
   'type': 'message-arrived',
   'whoami': <sender>,  
@@ -144,7 +144,7 @@ As you can see `sendTo` and `broadcast` methods have the `managed` parameter. Co
 
 A subscriber to the comunicator client could receive:
 
-- ```javascript
+```javascript
 {
   'type': 'open',
   'whoami': <websocket_opened>
@@ -152,7 +152,7 @@ A subscriber to the comunicator client could receive:
 ```
 When the underlined comunicator websocket is opened;
 
-- ```javascript
+```javascript
 {
   'type': 'joined',
   'whoami': <the_user_identifier>
@@ -160,7 +160,7 @@ When the underlined comunicator websocket is opened;
 ```
 When the comunicator client has finished the joining process;
 
-- ```javascript
+```javascript
 {
   'type': 'to-me',
   'whoami': <sender>,
@@ -170,7 +170,7 @@ When the comunicator client has finished the joining process;
 ```
 When the comunicator client receives a directly sent message.
 
-- ```javascript
+```javascript
 {
   'type': 'to-all',
   'whoami': <sender>,
