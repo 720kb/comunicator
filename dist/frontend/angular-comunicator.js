@@ -6,7 +6,7 @@
 * https://github.com/720kb/comunicator
 *
 * MIT license
-* Thu Feb 25 2016
+* Fri Feb 26 2016
 */
 
 (function (global, factory) {

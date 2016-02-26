@@ -1,6 +1,6 @@
 {
   "name": "comunicator",
-  "version": "2.2.4",
+  "version": "3.0.0",
   "description": "The 720kb notifier api (atm it uses websockets)",
   "license": "MIT",
   "homepage": "https://github.com/720kb/comunicator",
@@ -57,12 +57,12 @@
   },
   "scripts": {
     "lint": "gulp lint",
-    "test": "npm run-script lint && gulp test",
+    "test": "gulp test",
     "example": "npm run-script test && gulp example",
     "example-debug": "npm run-script test && gulp example-debug",
     "precommit": "npm run-script test",
     "preversion": "npm run-script test",
-    "version": "npm run-script min && ./tasks/bower-version-bump && git add -A .",
+    "version": "./tasks/bower-version-bump && git add -A .",
     "postversion": "git push && git push --tags"
   },
   "author": {
