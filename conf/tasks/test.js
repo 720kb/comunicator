@@ -11,4 +11,10 @@
     return gulp.src(paths.spec)
       .pipe(shell('node_modules/.bin/lab --debug --verbose <%= file.path %>'));
   });
+
+  gulp.task('test-pre-commit', ['lint'], () => {
+
+    return gulp.src(paths.spec)
+      .pipe(shell('node_modules/.bin/lab --debug --verbose <%= file.path %>'));
+  });
 }());

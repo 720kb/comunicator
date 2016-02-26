@@ -60,7 +60,7 @@
     "test": "gulp test",
     "example": "npm run-script test && gulp example",
     "example-debug": "npm run-script test && gulp example-debug",
-    "precommit": "npm run-script test",
+    "precommit": "gulp test-pre-commit",
     "preversion": "npm run-script test",
     "version": "./tasks/bower-version-bump && git add -A .",
     "postversion": "git push && git push --tags"

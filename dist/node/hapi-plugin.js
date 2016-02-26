@@ -2,7 +2,7 @@
 
 /**
 * comunicator
-* 2.2.4
+* 3.0.0
 *
 * The 720kb notifier api (atm it uses websockets)
 * https://github.com/720kb/comunicator
