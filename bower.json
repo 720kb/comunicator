@@ -6,7 +6,7 @@
     "wouldgo <wouldgo84@gmail.com>"
   ],
   "description": "The 720kb notifier api (atm it uses websockets)",
-  "main": "dist/comunicator-angular.min.js",
+  "main": "dist/frontend/angular-comunicator-min.js",
   "license": "MIT",
   "ignore": [
     "**/.*",
