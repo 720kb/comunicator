@@ -1,19 +1,19 @@
 /**
 * comunicator
-* 3.0.0
+* 3.0.1
 *
 * The 720kb notifier api (atm it uses websockets)
 * https://github.com/720kb/comunicator
 *
 * MIT license
-* Fri Feb 26 2016
+* Sun Mar 06 2016
 */
 
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('rxjs/Rx'), require('ws')) :
-  typeof define === 'function' && define.amd ? define('comunicator', ['rxjs/Rx', 'ws'], factory) :
-  (global.comunicator = factory(global.Rx,global.WebSocket));
-}(this, function (Rx,WebSocket) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('rxjs/Rx'), require('ws')) :
+  typeof define === 'function' && define.amd ? define('comunicator', ['exports', 'rxjs/Rx', 'ws'], factory) :
+  (factory((global.comunicator = global.comunicator || {}),global.Rx,global.WebSocket));
+}(this, function (exports,Rx,WebSocket) { 'use strict';
 
   Rx = 'default' in Rx ? Rx['default'] : Rx;
   WebSocket = 'default' in WebSocket ? WebSocket['default'] : WebSocket;
@@ -75,7 +75,7 @@
 
   babelHelpers;
 
-  var WebSocketCtor = undefined;
+  var WebSocketCtor = void 0;
 
   try {
 
@@ -324,7 +324,7 @@
     return Comunicator;
   }(Rx.Observable);
 
-  return Comunicator;
+  exports.Comunicator = Comunicator;
 
 }));
 //# sourceMappingURL=comunicator.js.map

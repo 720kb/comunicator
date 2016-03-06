@@ -2,13 +2,13 @@
 
 /**
 * comunicator
-* 3.0.0
+* 3.0.1
 *
 * The 720kb notifier api (atm it uses websockets)
 * https://github.com/720kb/comunicator
 *
 * MIT license
-* Fri Feb 26 2016
+* Sun Mar 06 2016
 */
 /*global require,module*/
 var ws = require('ws'),

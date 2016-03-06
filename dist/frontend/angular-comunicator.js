@@ -1,12 +1,12 @@
 /**
 * comunicator
-* 3.0.0
+* 3.0.1
 *
 * The 720kb notifier api (atm it uses websockets)
 * https://github.com/720kb/comunicator
 *
 * MIT license
-* Fri Feb 26 2016
+* Sun Mar 06 2016
 */
 
 (function (global, factory) {
@@ -76,7 +76,7 @@
 
   babelHelpers;
 
-  var WebSocketCtor = undefined;
+  var WebSocketCtor = void 0;
 
   try {
 
@@ -326,7 +326,7 @@
   }(Rx.Observable);
 
   angular.module('720kb.comunicator', []).provider('Comunicator', function () {
-    var comunicator = undefined;
+    var comunicator = void 0;
     var initComunicator = function initComunicator(url) {
 
       comunicator = new Comunicator(url);

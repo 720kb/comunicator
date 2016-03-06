@@ -12,7 +12,7 @@
     , salt = 'kjwf788fu38l102ijllwefliuh98hegfj98usjsjsnwe%&kjnwef$kjwnflllyyyuii'
     , jwtToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjo5MTE2NDExOCwiaWF0IjoxNDU1OTYxMTgzfQ.0Fgi27N32jqdzLFnqMiSeynolxqSHHzTOrzamY5kWuo'
     , Comunicator = require('../dist/node/comunicator').Comunicator
-    , ComunicatorClient = require('../dist/frontend/comunicator')
+    , ComunicatorClient = require('../dist/frontend/comunicator').Comunicator
     , theComunicatorServer = new Comunicator({
         'host': '::',
         'port': 8000
