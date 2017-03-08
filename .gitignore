@@ -1,5 +1,6 @@
+.tmp/
+coverage/
+node_modules/
 npm-debug.log
 .DS_Store
-node_modules/
-bower_components/
-.tmp/
+dist/
