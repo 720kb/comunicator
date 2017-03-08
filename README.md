@@ -20,15 +20,9 @@ The AngularJS provider needs at least AngularJS version 1.2.
 
 ## Installation
 
-Comunicator could be installed via npm or bower:
-
-#### NPM
+Comunicator could be installed via npm:
 ```sh
 $ npm install --save comunicator
-```
-#### Bower
-```sh
-$ bower install --save comunicator
 ```
 
 ### Node.js side
