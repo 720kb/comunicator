@@ -1,6 +1,11 @@
 /*global window*/
 import {Observable} from '@reactivex/rxjs';
 import WebSocket from 'ws';
+
+import user from './user/user-is-present';
+import sendTo from './action/send-to';
+import broadcast from './action/broadcast';
+
 let WebSocketCtor;
 
 try {
@@ -72,6 +77,12 @@ class Comunicator extends Observable {
 
           if (parsedMsg.opcode === 'joined') {
 
+            if (parsedMsg.whoami === comunicatorState.whoReallyAmI) {
+
+              Object.assign(Comunicator.prototype,
+                sendTo(comunicatorState),
+                broadcast(comunicatorState));
+            }
             subscriber.next({
               'type': 'joined',
               'whoami': parsedMsg.whoami
@@ -136,6 +147,7 @@ class Comunicator extends Observable {
           });
         }
 
+        Object.assign(Comunicator.prototype, user(comunicatorState));
         return () => {
 
           comunicatorState.websocket.close();
@@ -158,7 +170,6 @@ class Comunicator extends Observable {
         subscriptionToInternalObservable.unsubscribe();
       };
     });
-
     this[stateSym] = comunicatorState;
   }
 

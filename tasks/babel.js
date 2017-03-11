@@ -5,9 +5,9 @@ const gulp = require('gulp')
 
 module.exports = application => {
 
-  return gulp.src(application.confs.js.src)
+  return gulp.src(application.confs.node.src)
     .pipe(sourcemaps.init())
     .pipe(babel())
     .pipe(sourcemaps.write('.'))
-    .pipe(gulp.dest(application.confs.folders.dist));
+    .pipe(gulp.dest('dist/node'));
 };

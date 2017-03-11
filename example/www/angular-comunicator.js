@@ -1,1 +1,1 @@
-../../dist/frontend/angular-comunicator.js
+../../dist/angular-comunicator.js

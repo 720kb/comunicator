@@ -12,7 +12,7 @@ angular.module('720kb.comunicator', [])
 
   return {
     'setComunicatorServerURL': initComunicator,
-    '$get': /*@ngInject*/ () => {
+    '$get': () => {
 
       return comunicator;
     }

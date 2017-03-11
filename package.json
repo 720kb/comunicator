@@ -26,8 +26,8 @@
     "ws": "^2.0.0"
   },
   "devDependencies": {
+    "babel-loader": "^6.4.0",
     "babel-preset-env": "^1.1.10",
-    "del": "^2.2.0",
     "eslint": "^3.17.1",
     "gulp": "github:gulpjs/gulp#4.0",
     "gulp-babel": "^6.1.1",
@@ -39,27 +39,32 @@
     "husky": "^0.13.2",
     "inert": "^4.1.0",
     "jest": "^19.0.2",
-    "run-sequence": "^1.1.5"
+    "npm-run-all": "^4.0.2",
+    "rimraf": "^2.6.1",
+    "run-sequence": "^1.1.5",
+    "webpack": "^2.2.1",
+    "webpack-validator": "^2.3.0"
   },
   "scripts": {
-    "dev": "jest --watch --coverage spec/*",
-    "pretest": "gulp",
-    "test": "jest spec/*",
+    "clean": "rimraf dist",
     "lint": "gulp lint",
-    "precommit": "npm run-script test",
-    "preversion": "npm run-script test",
-    "version": "git add -A .",
-    "postversion": "git push && git push --tags"
+    "validate-webpack:dev": "webpack-validator webpack.config.js --env.dev",
+    "validate-webpack:prod": "webpack-validator webpack.config.js --env.prod",
+    "validate": "npm-run-all --sequential clean lint validate-webpack:*",
+    "build:dev": "webpack --env.dev",
+    "build:prod": "webpack --env.prod",
+    "build:node": "gulp build",
+    "build": "npm-run-all --sequential clean lint build:*",
+    "precommit": "npm run validate"
   },
   "confs": {
     "js": {
-      "src": [
-        "src/**/*.js"
-      ]
+      "src": "src/**/*.js",
+      "gulpfile": "gulpfile.js",
+      "tasks": "tasks/**/*.js"
     },
-    "folders": {
-      "dist": "dist",
-      "tmp": ".tmp"
+    "node": {
+      "src": "src/node/**/*.js"
     }
   },
   "author": {

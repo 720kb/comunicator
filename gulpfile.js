@@ -1,10 +1,10 @@
 /*global require*/
 const gulp = require('gulp')
   , packageJson = require('./package.json')
-  , babelTask = require('./tasks/babel').bind(undefined, packageJson)
-  , cleanTask = require('./tasks/clean').bind(undefined, packageJson);
+  , babel = require('./tasks/babel').bind(undefined, packageJson)
+  , lintTask = require('./tasks/lint').bind(undefined, packageJson);
 
-gulp.task('babel', babelTask);
-gulp.task('clean', cleanTask);
+gulp.task('lint', lintTask);
+gulp.task('build', babel);
 
-gulp.task('default', gulp.series('clean', 'babel'));
+gulp.task('default', gulp.series('lint'));
