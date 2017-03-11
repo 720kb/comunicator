@@ -9,5 +9,5 @@ module.exports = application => {
     .pipe(sourcemaps.init())
     .pipe(babel())
     .pipe(sourcemaps.write('.'))
-    .pipe(gulp.dest(application.confs.dist));
+    .pipe(gulp.dest(application.confs.folders.dist));
 };

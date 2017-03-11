@@ -1,5 +1,5 @@
 import angular from 'angular';
-import {Comunicator} from './comunicator';
+import {Comunicator} from './module/comunicator';
 
 angular.module('720kb.comunicator', [])
 .provider('Comunicator', () => {

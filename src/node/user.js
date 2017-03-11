@@ -1,5 +1,4 @@
-/*global module*/
-module.exports = ({connectedSockets = new Map()}) => ({
+export default ({connectedSockets = new Map()}) => ({
   'isUserPresent': who => {
 
     return connectedSockets.has(who);

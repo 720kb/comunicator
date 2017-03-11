@@ -1,330 +1,281 @@
-/**
-* comunicator
-* 3.0.1
-*
-* The 720kb notifier api (atm it uses websockets)
-* https://github.com/720kb/comunicator
-*
-* MIT license
-* Sun Mar 06 2016
-*/
+'use strict';
 
-(function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('rxjs/Rx'), require('ws')) :
-  typeof define === 'function' && define.amd ? define('comunicator', ['exports', 'rxjs/Rx', 'ws'], factory) :
-  (factory((global.comunicator = global.comunicator || {}),global.Rx,global.WebSocket));
-}(this, function (exports,Rx,WebSocket) { 'use strict';
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Comunicator = undefined;
 
-  Rx = 'default' in Rx ? Rx['default'] : Rx;
-  WebSocket = 'default' in WebSocket ? WebSocket['default'] : WebSocket;
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var babelHelpers = {};
-  babelHelpers.typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
-    return typeof obj;
-  } : function (obj) {
-    return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj;
-  };
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  babelHelpers.classCallCheck = function (instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  };
+var _Rx = require('rxjs/Rx');
 
-  babelHelpers.createClass = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];
-        descriptor.enumerable = descriptor.enumerable || false;
-        descriptor.configurable = true;
-        if ("value" in descriptor) descriptor.writable = true;
-        Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }
+var _Rx2 = _interopRequireDefault(_Rx);
 
-    return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);
-      if (staticProps) defineProperties(Constructor, staticProps);
-      return Constructor;
-    };
-  }();
+var _ws = require('ws');
 
-  babelHelpers.inherits = function (subClass, superClass) {
-    if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-    }
+var _ws2 = _interopRequireDefault(_ws);
 
-    subClass.prototype = Object.create(superClass && superClass.prototype, {
-      constructor: {
-        value: subClass,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  };
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-  babelHelpers.possibleConstructorReturn = function (self, call) {
-    if (!self) {
-      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-    return call && (typeof call === "object" || typeof call === "function") ? call : self;
-  };
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-  babelHelpers;
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /*global window*/
 
-  var WebSocketCtor = void 0;
 
-  try {
+var WebSocketCtor = void 0;
 
-    WebSocketCtor = WebSocket;
-    if (!WebSocketCtor) {
+try {
 
-      WebSocketCtor = window.WebSocket;
-    }
-  } catch (err) {
+  WebSocketCtor = _ws2.default;
+  if (!WebSocketCtor) {
 
     WebSocketCtor = window.WebSocket;
   }
+} catch (err) {
 
-  var whoReallyAmISym = Symbol('whoReallyAmI');
-  var reallyTokenSym = Symbol('reallyToken');
-  var websocketSym = Symbol('websocket');
-  var queueSym = Symbol('queue');
-  var timeWaitSlice = 9000;
-  var timeWaitSliceChoices = [0];
-  var giveMeATimeWait = function giveMeATimeWait() {
+  WebSocketCtor = window.WebSocket;
+}
 
-    return Math.floor(Math.random() * (timeWaitSliceChoices.length + 1));
-  };
-  var Comunicator = function (_Rx$Observable) {
-    babelHelpers.inherits(Comunicator, _Rx$Observable);
+var whoReallyAmISym = Symbol('whoReallyAmI'),
+    reallyTokenSym = Symbol('reallyToken'),
+    websocketSym = Symbol('websocket'),
+    queueSym = Symbol('queue'),
+    timeWaitSlice = 9000,
+    timeWaitSliceChoices = [0],
+    giveMeATimeWait = function giveMeATimeWait() {
 
-    function Comunicator(websocketUrl) {
-      babelHelpers.classCallCheck(this, Comunicator);
+  return Math.floor(Math.random() * (timeWaitSliceChoices.length + 1));
+};
 
-      if (!websocketUrl) {
+var Comunicator = function (_Rx$Observable) {
+  _inherits(Comunicator, _Rx$Observable);
 
-        throw new Error('Mandatory parameter is missing: [websocketUrl] ' + websocketUrl);
-      }
+  function Comunicator(websocketUrl) {
+    _classCallCheck(this, Comunicator);
 
-      var internalObservable = new Rx.Observable(function (subscriber) {
-        var inError = false;
+    if (!websocketUrl) {
 
-        if (_this[websocketSym] && (_this[websocketSym].readyState !== WebSocketCtor.CONNECTING || _this[websocketSym].readyState !== WebSocketCtor.OPEN)) {
-
-          inError = true;
-        }
-
-        if (typeof websocketUrl === 'string') {
-
-          _this[websocketSym] = new WebSocketCtor(websocketUrl);
-        } else if ((typeof websocketUrl === 'undefined' ? 'undefined' : babelHelpers.typeof(websocketUrl)) === 'object' && websocketUrl instanceof WebSocketCtor) {
-
-          _this[websocketSym] = websocketUrl;
-        } else {
-
-          throw new Error('websocket parameter passed is neither a string nor a WebSocket object');
-        }
-
-        _this[websocketSym].onopen = function (event) {
-
-          subscriber.next({
-            'type': 'open',
-            'whoami': event.target
-          });
-
-          while (_this[queueSym].length > 0 && _this[websocketSym].readyState === WebSocketCtor.OPEN) {
-
-            _this[websocketSym].push(_this[queueSym].shift());
-          }
-        };
-
-        _this[websocketSym].onmessage = function (event) {
-          var parsedMsg = JSON.parse(event.data);
-
-          if (parsedMsg.opcode === 'joined') {
-
-            subscriber.next({
-              'type': 'joined',
-              'whoami': parsedMsg.whoami
-            });
-          } else if (parsedMsg.opcode === 'to-me') {
-
-            subscriber.next({
-              'type': 'to-me',
-              'whoami': parsedMsg.whoami,
-              'who': parsedMsg.who,
-              'what': parsedMsg.what
-            });
-          } else if (parsedMsg.opcode === 'to-all') {
-
-            subscriber.next({
-              'type': 'to-all',
-              'whoami': parsedMsg.whoami,
-              'what': parsedMsg.what
-            });
-          }
-        };
-
-        _this[websocketSym].onerror = function (error) {
-
-          subscriber.error({
-            'type': 'error',
-            'cause': error
-          });
-        };
-
-        _this[websocketSym].onclose = function () {
-
-          subscriber.error({
-            'type': 'closed'
-          });
-        };
-
-        _this[websocketSym].push = _this[websocketSym].send;
-        _this[websocketSym].send = function (opcode, data) {
-          var messageToSend = JSON.stringify({
-            opcode: opcode,
-            'token': _this[reallyTokenSym],
-            data: data
-          });
-
-          if (_this[websocketSym] && _this[websocketSym].readyState === WebSocketCtor.OPEN) {
-
-            _this[websocketSym].push(messageToSend);
-          } else {
-
-            _this[queueSym].push(messageToSend);
-          }
-        };
-
-        if (inError && _this[websocketSym].readyState !== WebSocketCtor.CONNECTING && _this[websocketSym].readyState !== WebSocketCtor.OPEN) {
-
-          subscriber.error({
-            'type': 'closed'
-          });
-        }
-
-        return function () {
-
-          _this[websocketSym].close();
-        };
-      }).share();
-
-      var _this = babelHelpers.possibleConstructorReturn(this, Object.getPrototypeOf(Comunicator).call(this, function (observer) {
-
-        var subscriptionToInternalObservable = internalObservable.retryWhen(function (errors) {
-          return errors.switchMap(function () {
-            var nextTimeWaitSliceChoice = timeWaitSlice * (Math.pow(2, timeWaitSliceChoices.length) - 1);
-
-            timeWaitSliceChoices.push(nextTimeWaitSliceChoice);
-            return Rx.Observable.timer(timeWaitSliceChoices[giveMeATimeWait()]);
-          });
-        }).subscribe(observer);
-
-        return function () {
-
-          subscriptionToInternalObservable.unsubscribe();
-        };
-      }));
-
-      _this[queueSym] = [];
-      return _this;
+      throw new Error('Mandatory parameter is missing: [websocketUrl] ' + websocketUrl);
     }
 
-    babelHelpers.createClass(Comunicator, [{
-      key: 'userIsPresent',
-      value: function userIsPresent(whoami, token) {
+    var internalObservable = new _Rx2.default.Observable(function (subscriber) {
+      var inError = false;
 
-        if (this[whoReallyAmISym] !== whoami || this[reallyTokenSym] !== token) {
+      if (_this[websocketSym] && (_this[websocketSym].readyState !== WebSocketCtor.CONNECTING || _this[websocketSym].readyState !== WebSocketCtor.OPEN)) {
 
-          if (whoami && token) {
+        inError = true;
+      }
 
-            this[whoReallyAmISym] = whoami;
-            this[reallyTokenSym] = token;
+      if (typeof websocketUrl === 'string') {
 
-            var joinMessage = JSON.stringify({
-              'opcode': 'join',
-              'whoami': this[whoReallyAmISym],
-              'token': this[reallyTokenSym]
-            });
+        _this[websocketSym] = new WebSocketCtor(websocketUrl);
+      } else if ((typeof websocketUrl === 'undefined' ? 'undefined' : _typeof(websocketUrl)) === 'object' && websocketUrl instanceof WebSocketCtor) {
 
-            if (this[websocketSym] && this[websocketSym].readyState === WebSocketCtor.OPEN) {
+        _this[websocketSym] = websocketUrl;
+      } else {
 
-              this[websocketSym].push(joinMessage);
-            } else {
+        throw new Error('websocket parameter passed is neither a string nor a WebSocket object');
+      }
 
-              this[queueSym].push(joinMessage);
-            }
+      _this[websocketSym].onopen = function (event) {
+
+        subscriber.next({
+          'type': 'open',
+          'whoami': event.target
+        });
+
+        while (_this[queueSym].length > 0 && _this[websocketSym].readyState === WebSocketCtor.OPEN) {
+
+          _this[websocketSym].push(_this[queueSym].shift());
+        }
+      };
+
+      _this[websocketSym].onmessage = function (event) {
+        var parsedMsg = JSON.parse(event.data);
+
+        if (parsedMsg.opcode === 'joined') {
+
+          subscriber.next({
+            'type': 'joined',
+            'whoami': parsedMsg.whoami
+          });
+        } else if (parsedMsg.opcode === 'to-me') {
+
+          subscriber.next({
+            'type': 'to-me',
+            'whoami': parsedMsg.whoami,
+            'who': parsedMsg.who,
+            'what': parsedMsg.what
+          });
+        } else if (parsedMsg.opcode === 'to-all') {
+
+          subscriber.next({
+            'type': 'to-all',
+            'whoami': parsedMsg.whoami,
+            'what': parsedMsg.what
+          });
+        }
+      };
+
+      _this[websocketSym].onerror = function (error) {
+
+        subscriber.error({
+          'type': 'error',
+          'cause': error
+        });
+      };
+
+      _this[websocketSym].onclose = function () {
+
+        subscriber.error({
+          'type': 'closed'
+        });
+      };
+
+      _this[websocketSym].push = _this[websocketSym].send;
+      _this[websocketSym].send = function (opcode, data) {
+        var messageToSend = JSON.stringify({
+          opcode: opcode,
+          'token': _this[reallyTokenSym],
+          data: data
+        });
+
+        if (_this[websocketSym] && _this[websocketSym].readyState === WebSocketCtor.OPEN) {
+
+          _this[websocketSym].push(messageToSend);
+        } else {
+
+          _this[queueSym].push(messageToSend);
+        }
+      };
+
+      if (inError && _this[websocketSym].readyState !== WebSocketCtor.CONNECTING && _this[websocketSym].readyState !== WebSocketCtor.OPEN) {
+
+        subscriber.error({
+          'type': 'closed'
+        });
+      }
+
+      return function () {
+
+        _this[websocketSym].close();
+      };
+    }).share();
+
+    var _this = _possibleConstructorReturn(this, (Comunicator.__proto__ || Object.getPrototypeOf(Comunicator)).call(this, function (observer) {
+
+      var subscriptionToInternalObservable = internalObservable.retryWhen(function (errors) {
+        return errors.switchMap(function () {
+          var nextTimeWaitSliceChoice = timeWaitSlice * (Math.pow(2, timeWaitSliceChoices.length) - 1);
+
+          timeWaitSliceChoices.push(nextTimeWaitSliceChoice);
+          return _Rx2.default.Observable.timer(timeWaitSliceChoices[giveMeATimeWait()]);
+        });
+      }).subscribe(observer);
+
+      return function () {
+
+        subscriptionToInternalObservable.unsubscribe();
+      };
+    }));
+
+    _this[queueSym] = [];
+    return _this;
+  }
+
+  _createClass(Comunicator, [{
+    key: 'userIsPresent',
+    value: function userIsPresent(whoami, token) {
+
+      if (this[whoReallyAmISym] !== whoami || this[reallyTokenSym] !== token) {
+
+        if (whoami && token) {
+
+          this[whoReallyAmISym] = whoami;
+          this[reallyTokenSym] = token;
+
+          var joinMessage = JSON.stringify({
+            'opcode': 'join',
+            'whoami': this[whoReallyAmISym],
+            'token': this[reallyTokenSym]
+          });
+
+          if (this[websocketSym] && this[websocketSym].readyState === WebSocketCtor.OPEN) {
+
+            this[websocketSym].push(joinMessage);
           } else {
 
-            throw new Error('User identification datas missing.');
+            this[queueSym].push(joinMessage);
           }
         } else {
 
-          throw new Error('User is already identified.');
+          throw new Error('User identification datas missing.');
         }
+      } else {
+
+        throw new Error('User is already identified.');
       }
-    }, {
-      key: 'sendTo',
-      value: function sendTo(who, what, managed) {
+    }
+  }, {
+    key: 'sendTo',
+    value: function sendTo(who, what, managed) {
 
-        if (this[whoReallyAmISym] && this[websocketSym]) {
+      if (this[whoReallyAmISym] && this[websocketSym]) {
 
-          var toSend = {
-            'whoami': this[whoReallyAmISym],
-            who: who,
-            what: what
-          };
+        var toSend = {
+          'whoami': this[whoReallyAmISym],
+          who: who,
+          what: what
+        };
 
-          if (managed) {
+        if (managed) {
 
-            toSend.managed = true;
-          }
-
-          this[websocketSym].send('sendTo', toSend);
-        } else {
-
-          throw new Error('User identification required');
+          toSend.managed = true;
         }
+
+        this[websocketSym].send('sendTo', toSend);
+      } else {
+
+        throw new Error('User identification required');
       }
-    }, {
-      key: 'broadcast',
-      value: function broadcast(what, managed) {
+    }
+  }, {
+    key: 'broadcast',
+    value: function broadcast(what, managed) {
 
-        if (this[whoReallyAmISym] && this[websocketSym]) {
+      if (this[whoReallyAmISym] && this[websocketSym]) {
 
-          var toSend = {
-            'whoami': this[whoReallyAmISym],
-            'who': '*',
-            what: what
-          };
+        var toSend = {
+          'whoami': this[whoReallyAmISym],
+          'who': '*',
+          what: what
+        };
 
-          if (managed) {
+        if (managed) {
 
-            toSend.managed = true;
-          }
-
-          this[websocketSym].send('broadcast', toSend);
-        } else {
-
-          throw new Error('User identification required');
+          toSend.managed = true;
         }
+
+        this[websocketSym].send('broadcast', toSend);
+      } else {
+
+        throw new Error('User identification required');
       }
-    }, {
-      key: 'whoAmI',
-      get: function get() {
+    }
+  }, {
+    key: 'whoAmI',
+    get: function get() {
 
-        return this[whoReallyAmISym];
-      }
-    }]);
-    return Comunicator;
-  }(Rx.Observable);
+      return this[whoReallyAmISym];
+    }
+  }]);
 
-  exports.Comunicator = Comunicator;
+  return Comunicator;
+}(_Rx2.default.Observable);
 
-}));
+exports.Comunicator = Comunicator;
 //# sourceMappingURL=comunicator.js.map

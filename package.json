@@ -4,6 +4,7 @@
   "description": "The 720kb notifier api (atm it uses websockets)",
   "license": "MIT",
   "homepage": "https://github.com/720kb/comunicator",
+  "main": "./dist/node/comunicator.js",
   "keywords": [
     "ws",
     "notify",
@@ -16,7 +17,6 @@
     "type": "git",
     "url": "git://github.com/720kb/comunicator.git"
   },
-  "main": "./dist/node/comunicator.js",
   "dependencies": {
     "@reactivex/rxjs": "^5.2.0",
     "debug": "^2.2.0",
@@ -31,6 +31,7 @@
     "eslint": "^3.17.1",
     "gulp": "github:gulpjs/gulp#4.0",
     "gulp-babel": "^6.1.1",
+    "gulp-cli": "^1.2.2",
     "gulp-eslint": "^3.0.1",
     "gulp-ng-annotate": "^2.0.0",
     "gulp-sourcemaps": "^2.4.1",
@@ -38,18 +39,28 @@
     "husky": "^0.13.2",
     "inert": "^4.1.0",
     "jest": "^19.0.2",
-    "require-dir": "^0.3.0",
     "run-sequence": "^1.1.5"
   },
   "scripts": {
-    "lint": "gulp lint",
+    "dev": "jest --watch --coverage spec/*",
+    "pretest": "gulp",
     "test": "jest spec/*",
-    "example": "npm run-script test && gulp example",
-    "example-debug": "npm run-script test && gulp example-debug",
+    "lint": "gulp lint",
     "precommit": "npm run-script test",
     "preversion": "npm run-script test",
-    "version": "./tasks/bower-version-bump && git add -A .",
+    "version": "git add -A .",
     "postversion": "git push && git push --tags"
+  },
+  "confs": {
+    "js": {
+      "src": [
+        "src/**/*.js"
+      ]
+    },
+    "folders": {
+      "dist": "dist",
+      "tmp": ".tmp"
+    }
   },
   "author": {
     "name": "Dario Andrei",

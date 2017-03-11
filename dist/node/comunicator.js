@@ -1,49 +1,76 @@
 'use strict';
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.hapiComunicator = exports.default = undefined;
+
+var _ws = require('ws');
+
+var _ws2 = _interopRequireDefault(_ws);
+
+var _jsonwebtoken = require('jsonwebtoken');
+
+var _jsonwebtoken2 = _interopRequireDefault(_jsonwebtoken);
+
+var _rxjs = require('@reactivex/rxjs');
+
+var _debug = require('debug');
+
+var _debug2 = _interopRequireDefault(_debug);
+
+var _user = require('./user');
+
+var _user2 = _interopRequireDefault(_user);
+
+var _sendTo = require('./action/send-to');
+
+var _sendTo2 = _interopRequireDefault(_sendTo);
+
+var _broadcast = require('./action/broadcast');
+
+var _broadcast2 = _interopRequireDefault(_broadcast);
+
+var _plugin = require('./hapi/plugin');
+
+var _plugin2 = _interopRequireDefault(_plugin);
+
+var _package = require('../../package.json');
+
+var _package2 = _interopRequireDefault(_package);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-/**
-* comunicator
-* 3.0.1
-*
-* The 720kb notifier api (atm it uses websockets)
-* https://github.com/720kb/comunicator
-*
-* MIT license
-* Sun Mar 06 2016
-*/
-/*global require,module*/
-var ws = require('ws'),
-    jwt = require('jsonwebtoken'),
-    Rx = require('rxjs/Rx'),
-    user = require('./user'),
-    sendTo = require('./send-to'),
-    broadcast = require('./broadcast'),
-    debug = require('debug')('720kb:comunicator:debug'),
-    comunicatorState = {
-  'connectedSockets': new Map(),
-  'sendPendingRequests': new Map()
+var log = (0, _debug2.default)('720kb:comunicator:debug'),
+    websocketConfigurationsMandatory = function websocketConfigurationsMandatory() {
+  throw new Error('Missing mandatory parameter websocketConfigurations.');
+},
+    jwtSaltKeyMandatory = function jwtSaltKeyMandatory() {
+  throw new Error('Missing mandatory parameter jwtSaltKey.');
 };
 
-var Comunicator = function (_Rx$Observable) {
-  _inherits(Comunicator, _Rx$Observable);
+var Comunicator = function (_Observable) {
+  _inherits(Comunicator, _Observable);
 
-  function Comunicator(websocketConfigurations, jwtSaltKey) {
-    var _this;
+  function Comunicator() {
+    var websocketConfigurations = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : websocketConfigurationsMandatory();
+    var jwtSaltKey = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : jwtSaltKeyMandatory();
 
     _classCallCheck(this, Comunicator);
 
-    if (!websocketConfigurations || !jwtSaltKey) {
+    var comunicatorState = {
+      'connectedSockets': new Map(),
+      'sendPendingRequests': new Map()
+    },
+        internalObservable = new _rxjs.Observable(function (subscriber) {
 
-      throw new Error('Missing mandatory parameters [websocketConfigurations] - [jwtSaltKey]: ' + websocketConfigurations + ' - ' + jwtSaltKey);
-    }
-    var internalObservable = new Rx.Observable(function (subscriber) {
-
-      var socketServer = new ws.Server(websocketConfigurations, function () {
+      var socketServer = new _ws2.default.Server(websocketConfigurations, function () {
         return subscriber.next({
           'type': 'ready'
         });
@@ -122,8 +149,8 @@ var Comunicator = function (_Rx$Observable) {
           /* {'opcode': 'join', 'whoami': <id>, 'token': <jwt-token>} */
           if (parsedMsg.opcode === 'join') {
 
-            debug('-- incoming join from ' + parsedMsg.whoami);
-            jwt.verify(parsedMsg.token, jwtSaltKey, function (err) {
+            log('-- incoming join from ' + parsedMsg.whoami);
+            _jsonwebtoken2.default.verify(parsedMsg.token, jwtSaltKey, function (err) {
 
               if (err) {
 
@@ -196,9 +223,9 @@ var Comunicator = function (_Rx$Observable) {
             if (parsedMsg.opcode === 'sendTo' && parsedMsg.data && parsedMsg.data.who && parsedMsg.data.whoami && parsedMsg.data.what) {
 
               /*eslint-disable no-console*/
-              debug('-- incoming sent message from ' + parsedMsg.data.whoami + ' to ' + parsedMsg.data.who);
+              log('-- incoming sent message from ' + parsedMsg.data.whoami + ' to ' + parsedMsg.data.who);
               /*eslint-enable no-console*/
-              jwt.verify(parsedMsg.token, jwtSaltKey, function (err) {
+              _jsonwebtoken2.default.verify(parsedMsg.token, jwtSaltKey, function (err) {
 
                 if (err) {
 
@@ -224,8 +251,8 @@ var Comunicator = function (_Rx$Observable) {
               /* {'whoami': whoami, 'token': <jwt-token>, 'data': {'who': '*', 'what': what}} */
               if (parsedMsg.opcode === 'broadcast' && parsedMsg.data && parsedMsg.data.whoami && parsedMsg.data.what) {
 
-                debug('-- incoming broadcast message from ' + parsedMsg.data.whoami);
-                jwt.verify(parsedMsg.token, jwtSaltKey, function (err) {
+                log('-- incoming broadcast message from ' + parsedMsg.data.whoami);
+                _jsonwebtoken2.default.verify(parsedMsg.token, jwtSaltKey, function (err) {
 
                   if (err) {
 
@@ -264,7 +291,7 @@ var Comunicator = function (_Rx$Observable) {
       };
     }).share();
 
-    return _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Comunicator).call(this, function (observer) {
+    var _this = _possibleConstructorReturn(this, (Comunicator.__proto__ || Object.getPrototypeOf(Comunicator)).call(this, function (observer) {
 
       var subscriptionToInternalObservable = internalObservable.subscribe(observer);
 
@@ -273,15 +300,20 @@ var Comunicator = function (_Rx$Observable) {
         subscriptionToInternalObservable.unsubscribe();
       };
     }));
+
+    Object.assign(Comunicator.prototype, (0, _user2.default)(comunicatorState), (0, _sendTo2.default)(comunicatorState), (0, _broadcast2.default)(comunicatorState));
+    return _this;
   }
 
   return Comunicator;
-}(Rx.Observable);
+}(_rxjs.Observable);
 
-Object.assign(Comunicator.prototype, user(comunicatorState), sendTo(comunicatorState), broadcast(comunicatorState));
+/*eslint-disable one-var*/
 
-module.exports = {
-  Comunicator: Comunicator,
-  'hapiComunicator': require('./hapi-plugin')(Comunicator)
-};
+
+var hapiComunicator = (0, _plugin2.default)(_package2.default, Comunicator);
+/*eslint-enable*/
+
+exports.default = Comunicator;
+exports.hapiComunicator = hapiComunicator;
 //# sourceMappingURL=comunicator.js.map
