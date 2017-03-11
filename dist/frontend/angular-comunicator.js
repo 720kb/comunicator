@@ -4,7 +4,7 @@ var _angular = require('angular');
 
 var _angular2 = _interopRequireDefault(_angular);
 
-var _comunicator = require('./comunicator');
+var _comunicator = require('./module/comunicator');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
