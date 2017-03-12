@@ -46,6 +46,10 @@
     "webpack-validator": "^2.3.0"
   },
   "scripts": {
+    "prestart": "npm run build",
+    "start": "DEBUG=720kb:* node example/start-node.js",
+    "test": "jest --coverage",
+    "test:watch": "jest --coverage --watch",
     "clean": "rimraf dist",
     "lint": "gulp lint",
     "validate-webpack:dev": "webpack-validator webpack.config.js --env.dev",
@@ -55,7 +59,10 @@
     "build:prod": "webpack --env.prod",
     "build:node": "gulp build",
     "build": "npm-run-all --sequential clean lint build:*",
-    "precommit": "npm run validate"
+    "precommit": "npm run validate",
+    "preversion": "npm-run-all validate test",
+    "version": "git add -A .",
+    "postversion": "git push && git push --tags"
   },
   "confs": {
     "js": {
