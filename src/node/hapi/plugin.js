@@ -4,7 +4,19 @@ const optionsSchema = joi.object().keys({
     'connectionName': joi.string().alphanum(),
     'jwtSalt': joi.string().required()
   })
-  , toExport = (packageJSON, Comunicator) => {
+  , packageJSONMandatory = () => {
+    throw new Error('Missing mandatory parameter package.json.');
+  }
+  , comunicatorMandatory = () => {
+    throw new Error('Missing mandatory parameter comunicator.');
+  }
+  , nameMandatory = () => {
+    throw new Error('Missing mandatory parameter name into package.json.');
+  }
+  , versionMandatory = () => {
+    throw new Error('Missing mandatory parameter version into package.json.');
+  }
+  , toExport = ({name = nameMandatory(), version = versionMandatory()} = packageJSONMandatory(), Comunicator = comunicatorMandatory()) => {
 
     const comunicatorHapiPlugin = (server, options, next) => {
 
@@ -17,11 +29,25 @@ const optionsSchema = joi.object().keys({
           }
 
           if (server) {
-            const connection = value.connectionName ? server.select(value.connectionName).listener : server.connections[0].listener;
 
-            server.decorate('server', 'comunicator', new Comunicator({
-              'server': connection
-            }, value.jwtSalt));
+            if (!server.connections.length ||
+              !server.connections[0].listener) {
+
+              return next(new Error('No server connection specified'));
+            }
+
+            if (value.connectionName) {
+
+              server.decorate('server', 'comunicator', new Comunicator({
+                'server': server.select(value.connectionName).listener
+              }, value.jwtSalt));
+            } else {
+
+              server.decorate('server', 'comunicator', new Comunicator({
+                'server': server.connections[0].listener
+              }, value.jwtSalt));
+            }
+
             return next();
           }
           return next(new Error('Server is not specified'));
@@ -33,8 +59,8 @@ const optionsSchema = joi.object().keys({
     };
 
     comunicatorHapiPlugin.attributes = {
-      'name': packageJSON.name,
-      'version': packageJSON.version
+      name,
+      version
     };
 
     return {
