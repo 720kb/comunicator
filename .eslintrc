@@ -146,7 +146,7 @@
       }
     ],
     "no-use-before-define": 2,
-    "callback-return": 1,
+    "callback-return": ["error", ["done", "cb"]],
     "handle-callback-err": 2,
     "no-new-require": 2,
     "no-path-concat": 2,

@@ -1,5 +1,4 @@
 import ws from 'ws';
-import jwt from 'jsonwebtoken';
 import {Observable} from '@reactivex/rxjs';
 import debug from 'debug';
 
@@ -7,6 +6,10 @@ import user from './user';
 import sendTo from './action/send-to';
 import broadcast from './action/broadcast';
 import hapiPlugin from './hapi/plugin';
+
+import joinReaction from './reactions/join';
+import sendToReaction from './reactions/send-to';
+import broadcastReaction from './reactions/broadcast';
 
 import packageJSON from '../../package.json';
 
@@ -23,7 +26,8 @@ class Comunicator extends Observable {
 
     const comunicatorState = {
         'connectedSockets': new Map(),
-        'sendPendingRequests': new Map()
+        'sendPendingRequests': new Map(),
+        jwtSaltKey
       }
       , internalObservable = new Observable(subscriber => {
 
@@ -78,131 +82,45 @@ class Comunicator extends Observable {
           socket.on('message', message => {
             const parsedMsg = JSON.parse(message);
 
-            /* {'opcode': 'join', 'whoami': <id>, 'token': <jwt-token>} */
-            if (parsedMsg.opcode === 'join') {
+            switch (parsedMsg.opcode) {
+              case 'join': {
 
-              log(`-- incoming join from ${parsedMsg.whoami}`);
-              jwt.verify(parsedMsg.token, jwtSaltKey, err => {
+                /* {'opcode': 'join', 'whoami': <id>, 'token': <jwt-token>} */
+                joinReaction(parsedMsg);
+                break;
+              }
+              case 'sendTo': {
 
-                if (err) {
+                /* {'opcode': 'sendTo', 'token': <jwt-token>, 'data': {'whoami': <id>, 'who': <id>, 'what': payload}} */
+                sendToReaction(parsedMsg);
+                break;
+              }
+              case 'broadcast': {
 
-                  subscriber.error({
-                    'type': 'error',
-                    'cause': err
-                  });
-                } else {
+                /* {'whoami': whoami, 'token': <jwt-token>, 'data': {'who': '*', 'what': what}} */
+                broadcastReaction(parsedMsg);
+                break;
+              }
+              default: {
 
-                  comunicatorState.connectedSockets.set(parsedMsg.whoami, socket);
-                  const toSend = {
-                      'opcode': 'joined',
-                      'whoami': parsedMsg.whoami,
-                      'token': parsedMsg.token
-                    };
+                subscriber.error({
+                  'type': 'warning',
+                  'cause': `operation not permitted: ${JSON.stringify(parsedMsg)}`
+                });
+              }
+            }
 
-                  socket.send(JSON.stringify(toSend));
-                  subscriber.next({
-                    'type': 'user-joined',
-                    'whoami': parsedMsg.whoami
-                  });
-                  if (comunicatorState.sendPendingRequests.has(parsedMsg.whoami)) {
-
-                    for (const aSendPendingRequest of comunicatorState.sendPendingRequests.get(parsedMsg.whoami)) {
-                      if (aSendPendingRequest &&
-                        aSendPendingRequest.whoami &&
-                        aSendPendingRequest.who &&
-                        aSendPendingRequest.what) {
-
-                        this.sendTo(aSendPendingRequest.whoami, aSendPendingRequest.who, aSendPendingRequest.what);
-                      } else {
-
-                        subscriber.error({
-                          'type': 'warning',
-                          'cause': 'A sending pending request is invalid.'
-                        });
-                      }
-                    }
-
-                    comunicatorState.sendPendingRequests.delete(parsedMsg.whoami);
-                  } else {
-
-                    subscriber.next({
-                      'type': 'no-pending-messages',
-                      'whoami': parsedMsg.whoami
-                    });
-                  }
-                }
-              });
-            } else
-            /* {'opcode': 'sendTo', 'token': <jwt-token>, 'data': {'whoami': <id>, 'who': <id>, 'what': payload}} */
-            if (parsedMsg.opcode === 'sendTo' &&
+            if (parsedMsg.opcode === 'join') {}
+            else if (parsedMsg.opcode === 'sendTo' &&
               parsedMsg.data &&
               parsedMsg.data.who &&
               parsedMsg.data.whoami &&
-              parsedMsg.data.what) {
+              parsedMsg.data.what) {} else
 
-              /*eslint-disable no-console*/
-              log(`-- incoming sent message from ${parsedMsg.data.whoami} to ${parsedMsg.data.who}`);
-              /*eslint-enable no-console*/
-              jwt.verify(parsedMsg.token, jwtSaltKey, err => {
-
-                if (err) {
-
-                  subscriber.error({
-                    'type': 'error',
-                    'cause': err
-                  });
-                } else {
-
-                  subscriber.next({
-                    'type': 'message-arrived',
-                    'whoami': parsedMsg.data.whoami,
-                    'who': parsedMsg.data.who,
-                    'what': parsedMsg.data.what
-                  });
-                  if (!parsedMsg.data.managed) {
-
-                    this.sendTo(parsedMsg.data.whoami, parsedMsg.data.who, parsedMsg.data.what);
-                  }
-                }
-              });
-            } else
-            /* {'whoami': whoami, 'token': <jwt-token>, 'data': {'who': '*', 'what': what}} */
             if (parsedMsg.opcode === 'broadcast' &&
               parsedMsg.data &&
               parsedMsg.data.whoami &&
-              parsedMsg.data.what) {
-
-              log(`-- incoming broadcast message from ${parsedMsg.data.whoami}`);
-              jwt.verify(parsedMsg.token, jwtSaltKey, err => {
-
-                if (err) {
-
-                  subscriber.error({
-                    'type': 'error',
-                    'cause': err
-                  });
-                } else {
-
-                  subscriber.next({
-                    'type': 'message-arrived',
-                    'whoami': parsedMsg.data.whoami,
-                    'who': '*',
-                    'what': parsedMsg.data.what
-                  });
-
-                  if (!parsedMsg.data.managed) {
-
-                    this.broadcast(parsedMsg.data.whoami, parsedMsg.data.what);
-                  }
-                }
-              });
-            } else {
-
-              subscriber.error({
-                'type': 'warning',
-                'cause': `operation not permitted: ${JSON.stringify(parsedMsg)}`
-              });
-            }
+              parsedMsg.data.what) {} else {}
           });
         });
 
