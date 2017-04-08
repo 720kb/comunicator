@@ -7,9 +7,9 @@ import sendTo from './action/send-to';
 import broadcast from './action/broadcast';
 import hapiPlugin from './hapi/plugin';
 
-import joinReaction from './reactions/join';
-import sendToReaction from './reactions/send-to';
-import broadcastReaction from './reactions/broadcast';
+import joined from './reactions/joined';
+import sentTo from './reactions/sent-to';
+import broadcasted from './reactions/broadcasted';
 
 import packageJSON from '../../package.json';
 
@@ -109,18 +109,6 @@ class Comunicator extends Observable {
                 });
               }
             }
-
-            if (parsedMsg.opcode === 'join') {}
-            else if (parsedMsg.opcode === 'sendTo' &&
-              parsedMsg.data &&
-              parsedMsg.data.who &&
-              parsedMsg.data.whoami &&
-              parsedMsg.data.what) {} else
-
-            if (parsedMsg.opcode === 'broadcast' &&
-              parsedMsg.data &&
-              parsedMsg.data.whoami &&
-              parsedMsg.data.what) {} else {}
           });
         });
 

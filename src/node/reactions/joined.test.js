@@ -2,19 +2,19 @@
 import ws from 'ws';
 import jwt from 'jsonwebtoken';
 
-import joinFactory from './join';
+import joinedFactory from './joined';
 
-describe('Join method', () => {
+describe('Joined method', () => {
 
   test('Is defined', () => {
 
-    expect(joinFactory).toBeDefined();
+    expect(joinedFactory).toBeDefined();
   });
 
   test('Instantiate with nothing', () => {
     expect(() => {
 
-      joinFactory();
+      joinedFactory();
     }).toThrow('Missing context');
   });
 
@@ -22,7 +22,7 @@ describe('Join method', () => {
 
     expect(() => {
 
-      joinFactory({});
+      joinedFactory({});
     }).toThrow('Missing mandatory parameter sendTo.');
   });
 
@@ -30,7 +30,7 @@ describe('Join method', () => {
 
     expect(() => {
 
-      joinFactory({
+      joinedFactory({
         'sendTo': jest.fn()
       });
     }).toThrow('Missing mandatory parameter connectedSockets.');
@@ -40,7 +40,7 @@ describe('Join method', () => {
 
     expect(() => {
 
-      joinFactory({
+      joinedFactory({
         'sendTo': jest.fn(),
         'connectedSockets': new Map()
       });
@@ -51,7 +51,7 @@ describe('Join method', () => {
 
     expect(() => {
 
-      joinFactory({
+      joinedFactory({
         'sendTo': jest.fn(),
         'connectedSockets': new Map(),
         'sendPendingRequests': new Map()
@@ -60,7 +60,7 @@ describe('Join method', () => {
   });
 
   test('Instantiate with sendTo, connectedSockets, sendPendingRequests and jwtSaltKey', () => {
-    const joinFunction = joinFactory({
+    const joinFunction = joinedFactory({
       'sendTo': jest.fn(),
       'connectedSockets': new Map(),
       'sendPendingRequests': new Map(),
@@ -68,18 +68,19 @@ describe('Join method', () => {
     });
 
     expect(joinFunction).toBeDefined();
-    expect(Object.keys(joinFunction)).toEqual(['join']);
+    expect(Object.keys(joinFunction)).toEqual(['joined']);
   });
 
-  describe('Join reaction function', () => {
+  describe('Joined reaction function', () => {
     const jwtSaltKey = 'abcdefghi'
+      , sendTo = jest.fn()
       , token = jwt.sign({'name': 'test'}, jwtSaltKey)
-      , joinFunction = joinFactory({
-        'sendTo': jest.fn(),
+      , joinFunction = joinedFactory({
+        sendTo,
         'connectedSockets': new Map(),
         'sendPendingRequests': new Map(),
         jwtSaltKey
-      }).join;
+      }).joined;
 
     test('No message, socket and subscriber', () => {
       expect(() => {
@@ -238,7 +239,6 @@ describe('Join method', () => {
 
       describe('Have pending requests', () => {
         const whoami = 'me'
-          , sendTo = jest.fn()
           , connectedSockets = new Map([
             [whoami, {
               'readyState': ws.OPEN,
@@ -246,12 +246,12 @@ describe('Join method', () => {
             }]
           ])
           , sendPendingRequests = new Map()
-          , joinFunction2 = joinFactory({
+          , joinFunction2 = joinedFactory({
             sendTo,
             connectedSockets,
             sendPendingRequests,
             jwtSaltKey
-          }).join
+          }).joined
           , message = {
             whoami,
             token
